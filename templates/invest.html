@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Invest Now</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f4f4f4;
+        }
+
+        .plan-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .plan-button {
+            padding: 15px 30px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .plan-button:hover {
+            background: #0056b3;
+        }
+
+        .plan-section {
+            display: none;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+            margin: auto;
+            width: 50%;
+        }
+
+        .active {
+            display: block;
+        }
+
+        select,
+        button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Select Your Investment Plan</h2>
+
+    <!-- Investment Plan Buttons -->
+    <div class="plan-buttons">
+        <button class="plan-button" onclick="showPlan('basic')">Basic Plan</button>
+        <button class="plan-button" onclick="showPlan('standard')">Standard Plan</button>
+        <button class="plan-button" onclick="showPlan('vip')">VIP Plan</button>
+    </div>
+
+    <!-- Investment Plan Sections -->
+    <div id="basic" class="plan-section">
+        <h3>Basic Plan</h3>
+        <select id="amount_basic">
+            <option value="20">Invest $20 → Earn $100</option>
+            <option value="30">Invest $30 → Earn $150</option>
+            <option value="40">Invest $40 → Earn $200</option>
+            <option value="50">Invest $50 → Earn $250</option>
+            <option value="60">Invest $60 → Earn $300</option>
+            <option value="70">Invest $70 → Earn $350</option>
+            <option value="80">Invest $80 → Earn $400</option>
+            <option value="90">Invest $90 → Earn $450</option>
+        </select>
+        <button onclick="convertAndPay('basic')">Pay Now</button>
+    </div>
+
+    <div id="standard" class="plan-section">
+        <h3>Standard Plan</h3>
+        <select id="amount_standard">
+            <option value="100">Invest $100 → Earn $500</option>
+            <option value="150">Invest $150 → Earn $750</option>
+            <option value="200">Invest $200 → Earn $1000</option>
+            <option value="250">Invest $250 → Earn $1250</option>
+            <option value="300">Invest $300 → Earn $1500</option>
+            <option value="350">Invest $350 → Earn $1750</option>
+        </select>
+        <button onclick="convertAndPay('standard')">Pay Now</button>
+    </div>
+
+    <div id="vip" class="plan-section">
+        <h3>VIP Plan</h3>
+        <select id="amount_vip">
+            <option value="400">Invest $400 → Earn $2000</option>
+            <option value="500">Invest $500 → Earn $2500</option>
+            <option value="600">Invest $600 → Earn $3000</option>
+            <option value="700">Invest $700 → Earn $3500</option>
+            <option value="800">Invest $800 → Earn $4000</option>
+            <option value="900">Invest $900 → Earn $4500</option>
+            <option value="1000">Invest $1000 → Earn $5000</option>
+        </select>
+        <button onclick="convertAndPay('vip')">Pay Now</button>
+    </div>
+
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script>
+        function showPlan(plan) {
+            document.querySelectorAll('.plan-section').forEach(section => section.classList.remove('active'));
+            document.getElementById(plan).classList.add('active');
+        }
+
+       async function convertAndPay(plan) {
+            let amountUSD = document.getElementById(`amount_${plan.toLowerCase()}`).value;
+            let email = "{{ session['user_email'] }}";
+
+            if (!email) {
+                alert("No email found! Please log in again.");
+                return;
+            }
+
+            try {
+                // Step 1: Convert USD to KES
+                let exchangeResponse = await fetch(`/convert_currency?amount=${amountUSD}&from=USD&to=KES`);
+                let exchangeData = await exchangeResponse.json();
+
+                if (exchangeData.error) {
+                    alert("Currency conversion failed: " + exchangeData.error);
+                    return;
+                }
+
+                let amountKES = Math.round(exchangeData.converted);  // Ensure proper KES formatting
+
+                // Step 2: Initialize Payment with Paystack
+                let paymentResponse = await fetch("/initialize_transaction", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: email, amount: amountKES })
+                });
+
+                let paymentData = await paymentResponse.json();
+                if (paymentData.status) {
+                    window.location.href = paymentData.data.authorization_url;  // Redirect to Paystack
+                } else {
+                    alert("Payment initialization failed: " + paymentData.message);
+                }
+
+            } catch (error) {
+                alert("Error processing payment: " + error.message);
+            }
+        }
+
+
+    </script>
+
+</body>
+
+</html>
