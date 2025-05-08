@@ -3,444 +3,203 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="description" content="Track live forex rates, manage investments, and convert currencies effortlessly.">
+    <meta name="keywords" content="Forex, Investment, Currency Conversion, Dashboard">
+    <meta name="author" content="Big Winners">
     <title>FX Pricing Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <!-- Font Awesome for icons -->
-    <style>
-        /* General Styling */
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-
-        .container {
-            margin: 20px auto;
-            width: 70%;
-        }
-
-        /* Home Button */
-        .home-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-        }
-
-        .home-button:hover {
-            background: #0056b3;
-        }
-
-        /* User Profile */
-        .user-profile {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-        }
-
-        .user-profile i {
-            font-size: 24px;
-            color: #007bff;
-        }
-
-        /* User Details Dropdown */
-        .user-details {
-            position: absolute;
-            top: 60px;
-            right: 20px;
-            width: 250px;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-            display: none;
-            text-align: left;
-        }
-
-        .user-details img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: block;
-            margin: 0 auto 10px;
-        }
-
-        .user-details button {
-            background: #ff4757;
-            color: white;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .user-details button:hover {
-            background: #e84141;
-        }
-
-        /* Investment Section */
-        .investment-section {
-            margin-top: 40px;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .invest-now {
-            background-color: #28a745;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        .invest-now:hover {
-            background-color: #218838;
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 </head>
 
 <body>
+    <!-- Welcome Back Banner -->
+    <div class="welcome-banner">
+        <h3>Welcome back, {{ session.get('user', 'User') }}!</h3>
+        <p>You have invested {{ session.get('total_investment', '$0') }} so far. Keep going!</p>
+    </div>
 
-    
-
+    <!-- Main Container -->
     <div class="container">
-        <h2>FX Pricing Dashboard</h2>
+        <!-- Dashboard Title with Icon -->
+        <h2><i class="fas fa-chart-line"></i> FX Pricing Dashboard</h2>
 
         <!-- Real-Time Forex Graph -->
         <div class="chart-container">
+            <h3><i class="fas fa-money-bill-trend-up"></i> Live Forex Rates</h3>
             <iframe src="https://fxpricing.com/fx-widget/market-currency-rates-widget.php?id=1,2,3,5,14,20" width="100%"
-                height="290" style="border: 1px solid #eee;"></iframe>
+                height="290"></iframe>
         </div>
 
-        <!-- User Profile -->
-        <div class="user-profile" onclick="toggleProfile()">
-            <i class="fas fa-user-circle"></i>
+        <!-- User Profile and Dark Mode Toggle -->
+        <div class="top-right-container">
+            <!-- User Profile -->
+            <div class="user-profile" onclick="toggleProfile()">
+                <i class="fas fa-user-circle"></i> <!-- Profile Icon -->
+            </div>
+
+            <!-- Dark Mode Toggle -->
+            <button id="themeToggle" class="theme-toggle"><i class="fas fa-moon"></i></button>
         </div>
 
         <!-- User Details Dropdown -->
-       <div class="user-details" id="userDetails">
-    <img id="profilePicture"
-        src="{{ url_for('static', filename='uploads/' + session.get('profile_picture', 'default.jpg')) }}"
-        alt="Profile Picture">
-    
-    <p><strong>Username:</strong> {{ session.get('user', 'Guest') }}</p>
-    <p><strong>Email:</strong> {{ session.get('user_email', 'Not available') }}</p>
-    <p>Paystack Key: {{ paystack_key }}</p>  <!-- Debugging Check -->
-    <button onclick="logout()">Logout</button>
-</div>
+        <div class="user-details" id="userDetails">
+            <img id="profilePicture"
+                src="{{ url_for('static', filename='uploads/' + session.get('profile_picture', 'default.jpg')) }}"
+                alt="Profile Picture">
+            <p><i class="fas fa-user"></i> <strong>Username:</strong> {{ session.get('user', 'Guest') }}</p>
+            <p><i class="fas fa-envelope"></i> <strong>Email:</strong> {{ session.get('user_email', 'Not available') }}
+            </p>
+            <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
 
-        <!-- Investment Section (Bottom of Dashboard) -->
+        <!-- Investment Section -->
         <div class="investment-section">
-    <h3>Your Investment in Progress:</h3>
-    <p><strong>{{ session.get('investment', 'No active investment') }}</strong></p>
-    
-    <p>Paystack Key: {{ paystack_key }}</p>  <!-- Debugging Check -->
-    
-    <button class="invest-now" onclick="window.location.href='/invest'">Invest Now</button>
-</div>
+            <h3><i class="fas fa-wallet"></i> Your Investment in Progress</h3>
+            <p><i class="fas fa-coins"></i> <strong>{{ session.get('investment', 'No active investment') }}</strong></p>
+            <button class="invest-now" onclick="window.location.href='/invest'"><i class="fas fa-plus-circle"></i>
+                Invest Now</button>
+            <button class="withdraw-button" onclick="attemptWithdraw()"><i class="fas fa-money-check-alt"></i>
+                Withdraw</button>
+        </div>
 
-        <script>
-            function toggleProfile() {
-                let details = document.getElementById("userDetails");
-                details.style.display = details.style.display === "block" ? "none" : "block";
-            }
+        <!-- Help Icon -->
+        <a href="mailto:parmarshaifaly@gmail.com" class="help-icon" title="Need help? Email us!">
+            <i class="fas fa-question-circle"></i>
+        </a>
 
-            async function uploadProfilePicture() {
-                let fileInput = document.getElementById("uploadProfilePicture");
-                let file = fileInput.files[0];
+        <!-- Menu Icon -->
+        <div class="menu-container">
+            <i class="fas fa-bars menu-icon" onclick="toggleMenu()"></i>
+            <div class="menu-dropdown" id="menuDropdown">
+                <p><i class="fas fa-user"></i> <strong>Username:</strong> {{ session.get('user', 'Guest') }}</p>
+                <p><i class="fas fa-envelope"></i> <strong>Email:</strong> {{ session.get('user_email', 'Not available')
+                    }}</p>
+                <h3><i class="fas fa-file-contract"></i> Subscription Plans</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> <a href="/invest">Basic Plan</a></li>
+                    <li><i class="fas fa-check"></i> <a href="/invest">Standard Plan</a></li>
+                    <li><i class="fas fa-check"></i> <a href="/invest">VIP Plan</a></li>
+                </ul>
+                <h3><i class="fas fa-list"></i> More Options</h3>
+                <ul>
+                    <li><i class="fas fa-info-circle"></i> <a href="/about">About Us</a></li>
+                    <li><i class="fas fa-file-alt"></i> <a href="{{ url_for('terms') }}">Terms & Conditions</a></li>
+                </ul>
+            </div>
+        </div>
 
-                if (!file) {
-                    alert("Please select a file!");
-                    return;
-                }
-
-                let formData = new FormData();
-                formData.append("profile_pic", file);
-
-                let response = await fetch("/upload-profile-picture", {
-                    method: "POST",
-                    body: formData
-                });
-
-                let data = await response.json();
-                if (data.success) {
-                    document.getElementById("profilePicture").src = data.image_url;
-                    alert("Profile picture updated!");
-                } else {
-                    alert(data.error);
-                }
-            }
-
-            async function removeProfilePicture() {
-                let response = await fetch("/remove-profile-picture", {
-                    method: "POST"
-                });
-
-                let data = await response.json();
-                if (data.success) {
-                    document.getElementById("profilePicture").src = "{{ url_for('static', filename='uploads/default.jpg') }}";
-                    alert("Profile picture removed!");
-                } else {
-                    alert(data.error);
-                }
-            }
-
-            function logout() {
-                window.location.href = "/logout";
-            }
-            
-        </script>
-        <p>Debugging Paystack Key: {{ paystack_key }}</p>
-<script>
-    console.log("Debugging Paystack Key:", "{{ paystack_key }}");
-</script>
-
+        <!-- Currency Converter -->
+        <div class="currency-converter">
+            <h3><i class="fas fa-exchange-alt"></i> Big Winners Currency Converter</h3>
+            <table>
+                <tr>
+                    <td><i class="fas fa-dollar-sign"></i> <input type="number" id="convertAmount"
+                            placeholder="Enter Amount"></td>
+                    <td>
+                        <select id="fromCurrency">
+                            <option value="USD">US Dollar (USD)</option>
+                            <option value="KES">Kenyan Shilling (KES)</option>
+                            <option value="EUR">Euro (EUR)</option>
+                            <option value="GBP">British Pound (GBP)</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select id="toCurrency">
+                            <option value="USD">US Dollar (USD)</option>
+                            <option value="KES">Kenyan Shilling (KES)</option>
+                            <option value="EUR">Euro (EUR)</option>
+                            <option value="GBP">British Pound (GBP)</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <button onclick="convertCurrency()"><i class="fas fa-calculator"></i> Convert</button>
+            <p id="conversionResult"><i class="fas fa-sync-alt"></i> Live Conversion Rate: Loading...</p>
+        </div>
     </div>
-    <!-- Help Icon at Bottom Right -->
-    <a href="mailto:parmarshaifaly@gmail.com" class="help-icon" title="Need help? Email us!">
-        <i class="fas fa-question-circle"></i>
-    </a>
-    
-    <style>
-        .help-icon {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #007bff;
-            color: white;
-            padding: 15px;
-            border-radius: 50%;
-            font-size: 24px;
-            text-align: center;
-            cursor: pointer;
-            text-decoration: none;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-        }
-    
-        .help-icon:hover {
-            background: #0056b3;
-        }
-    </style>
-<!-- Terms & Conditions Section -->
-<!-- Menu Icon (Top Left) -->
-<div class="menu-container">
-    <i class="fas fa-bars menu-icon" onclick="toggleMenu()"></i>
-    <span class="menu-title">Dashboard</span>
-    <div class="menu-dropdown" id="menuDropdown">
-        <p><strong>Username:</strong> {{ session.get('user', 'Guest') }}</p>
-        <p><strong>Email:</strong> {{ session.get('user_email', 'Not available') }}</p>
-        <p><strong>Current Subscription:</strong> {{ session.get('investment', 'No active subscription') }}</p>
-        <p><strong>Amount to Withdraw:</strong> {{ session.get('withdraw_amount', 'N/A') }}</p>
-        <h3>Subscription Plans</h3>
-        <ul>
-            <li><a href="/invest">Basic Plan</a></li>
-            <li><a href="/invest">Standard Plan</a></li>
-            <li><a href="/invest">VIP Plan</a></li>
-        </ul>
-        <h3>More Options</h3>
-        <ul>
-            <li><a href="/about">About Us</a></li>
-        </ul>
+
+    <!-- Feedback Form -->
+    <div class="feedback-form">
+        <h3><i class="fas fa-comment-dots"></i> We Value Your Feedback</h3>
+        <textarea placeholder="Let us know your thoughts..."></textarea>
+        <button><i class="fas fa-paper-plane"></i> Submit Feedback</button>
     </div>
-</div>
 
-<style>
-    .menu-container {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-    }
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Big Winners. All rights reserved.</p>
+        <ul>
+            <li><a href="/privacy-policy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms & Conditions</a></li>
+            <li><a href="mailto:support@bigwinners.com">Contact Support</a></li>
+        </ul>
+    </footer>
 
-    .menu-icon {
-        font-size: 24px;
-        cursor: pointer;
-        color: #007bff;
-    }
-
-    .menu-dropdown {
-        display: none;
-        position: absolute;
-        top: 40px;
-        left: 0;
-        background: white;
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        text-align: left;
-        width: 250px;
-    }
-
-    .menu-dropdown ul {
-        list-style-type: none;
-        padding: 0;
-    }
-
-    .menu-dropdown ul li {
-        margin: 5px 0;
-    }
-
-    .menu-dropdown ul li a {
-        text-decoration: none;
-        color: #007bff;
-    }
-
-    .menu-dropdown ul li a:hover {
-        text-decoration: underline;
-    }
-</style>
-
-<script>
-    function toggleMenu() {
-        let menu = document.getElementById("menuDropdown");
-        menu.style.display = (menu.style.display === "block") ? "none" : "block";
-    }
-</script>
-<!-- Terms & Conditions Link -->
-<p class="terms-link"><a href="{{ url_for('terms') }}">Terms & Conditions</a></p>
-
-<style>
-    .terms-link {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        color: #007bff;
-        font-size: 14px;
-        text-decoration: underline;
-    }
-
-    .terms-link a {
-        color: inherit;
-        text-decoration: none;
-    }
-
-    .terms-link a:hover {
-        color: #0056b3;
-        text-decoration: underline;
-    }
-</style>
-<!-- Currency Converter Section -->
-<div class="currency-converter">
-    <h3>Big Winners Currency Converter</h3>
-    <table>
-        <tr>
-            <td><input type="number" id="convertAmount" placeholder="Enter Amount"></td>
-            <td>
-                <select id="fromCurrency">
-                    <option value="USD">US Dollar (USD)</option>
-                    <option value="KES">Kenyan Shilling (KES)</option>
-                    <option value="EUR">Euro (EUR)</option>
-                    <option value="GBP">British Pound (GBP)</option>
-                </select>
-            </td>
-            <td>
-                <select id="toCurrency">
-                    <option value="USD">US Dollar (USD)</option>
-                    <option value="KES">Kenyan Shilling (KES)</option>
-                    <option value="EUR">Euro (EUR)</option>
-                    <option value="GBP">British Pound (GBP)</option>
-                </select>
-            </td>
-        </tr>
-    </table>
-    <button onclick="convertCurrency()">Convert</button>
-    <p id="conversionResult">Live Conversion Rate: Loading...</p>
-</div>
-
-<style>
-    .currency-converter {
-        margin-top: 20px;
-        text-align: center;
-        padding: 20px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        width: 50%;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-    td {
-        padding: 10px;
-        text-align: center;
-    }
-
-    input,
-    select {
-        width: 100%;
-        padding: 8px;
-    }
-
-    button {
-        background-color: #007bff;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-        margin-top: 10px;
-    }
-
-    button:hover {
-        background-color: #0056b3;
-    }
-</style>
-
-<script>
-    async function convertCurrency() {
-        let amount = document.getElementById("convertAmount").value;
-        let fromCurrency = document.getElementById("fromCurrency").value;
-        let toCurrency = document.getElementById("toCurrency").value;
-
-        if (!amount || isNaN(amount) || amount <= 0) {
-            alert("Please enter a valid amount.");
-            return;
+    <!-- JavaScript -->
+    <script>
+        // Toggle User Profile
+        function toggleProfile() {
+            let details = document.getElementById("userDetails");
+            details.style.display = details.style.display === "block" ? "none" : "block";
         }
 
-        try {
-            let response = await fetch(`/convert_currency?amount=${amount}&from=${fromCurrency}&to=${toCurrency}`);
+        // Toggle Menu
+        function toggleMenu() {
+            let menu = document.getElementById("menuDropdown");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        }
+
+        // Logout Function
+        function logout() {
+            window.location.href = "/logout";
+        }
+
+        // Withdraw Function
+        async function attemptWithdraw() {
+            let response = await fetch("/withdraw", { method: "POST" });
             let data = await response.json();
 
-            if (data.error) {
-                document.getElementById("conversionResult").innerText = data.error;
+            if (data.success) {
+                alert(data.message);
             } else {
-                document.getElementById("conversionResult").innerText =
-                    `Converted Amount: ${data.converted} ${toCurrency} (Live Rate: ${data.rate})`;
+                alert(data.error);
             }
-        } catch (error) {
-            document.getElementById("conversionResult").innerText = "Error processing conversion.";
         }
-    }
-</script>
 
+        // Currency Conversion
+        async function convertCurrency() {
+            let amount = document.getElementById("convertAmount").value;
+            let fromCurrency = document.getElementById("fromCurrency").value;
+            let toCurrency = document.getElementById("toCurrency").value;
 
+            if (!amount || isNaN(amount) || amount <= 0) {
+                alert("Please enter a valid amount.");
+                return;
+            }
 
+            try {
+                let response = await fetch(`/convert_currency?amount=${amount}&from=${fromCurrency}&to=${toCurrency}`);
+                let data = await response.json();
 
+                if (data.error) {
+                    document.getElementById("conversionResult").innerText = data.error;
+                } else {
+                    document.getElementById("conversionResult").innerText = `Converted Amount: ${data.converted} ${toCurrency} (Live Rate: ${data.rate})`;
+                }
+            } catch (error) {
+                document.getElementById("conversionResult").innerText = "Error processing conversion.";
+            }
+        }
 
-
+        // Add Dark Mode Toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.querySelector('#themeToggle i');
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
+        });
+    </script>
 </body>
 
 </html>
