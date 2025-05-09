@@ -1,140 +1,100 @@
 /* General Styling */
 body {
     font-family: Arial, sans-serif;
-    background: #f4f4f4;
+    line-height: 1.6;
     margin: 0;
     padding: 0;
+    background-color: #f9f9f9;
     color: #333;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    /* Stack elements vertically */
+    min-height: 100vh;
+    /* Ensure full height of viewport */
 }
 
+/* Main Container */
 .container {
-    margin: 20px auto;
+    flex: 1;
+    /* Allow container to grow and push footer down */
+    max-width: 900px;
     width: 90%;
-    max-width: 1200px;
-}
-
-/* Dashboard Title */
-h2 {
-    color: #007bff;
-    margin-bottom: 20px;
-    font-size: 28px;
-    text-align: center;
-}
-
-/* Welcome Banner */
-.welcome-banner {
-    width: 100%;
-    background-color: white;
-    color: black;
-    padding: 20px;
-    text-align: center;
+    background: #ffffff;
+    padding: 20px 30px;
     border-radius: 8px;
-    margin-bottom: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    font-size: 18px;
-    font-weight: bold;
+    margin: 30px auto;
 }
 
-.welcome-banner p {
-    margin: 10px 0 0;
-    font-size: 16px;
-}
-
-/* Real-Time Forex Graph */
-.chart-container {
-    margin-top: 20px;
-    padding: 20px;
-    background: none;
+/* Heading Styling */
+h2 {
     text-align: center;
-    border-radius: 0;
-    box-shadow: none;
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
 }
 
-.chart-container h3 {
-    font-size: 20px;
+h3 {
+    font-size: 1.5rem;
+    color: #3498db;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+h4 {
+    font-size: 1.2rem;
+    color: #2c3e50;
+    margin-top: 20px;
     margin-bottom: 10px;
 }
 
-.responsive-iframe-container {
-    position: relative;
-    width: 100%;
-    max-width: 700px;
-    padding-top: 56.25%;
-    overflow: hidden;
-    margin: 0 auto;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fff;
-}
-
-.responsive-iframe-container iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-}
-
-/* Investment Section */
-.investment-section {
-    margin-top: 40px;
-    padding: 20px;
-    text-align: center;
-}
-
-.investment-section h3 {
-    color: #007bff;
+/* Paragraph Styling */
+p {
     margin-bottom: 15px;
-    font-size: 20px;
+    text-align: justify;
+    font-size: 1rem;
+    color: #555;
 }
 
-.investment-section p {
-    font-size: 16px;
-    margin: 10px 0;
+/* Unordered List Styling */
+ul {
+    margin-left: 20px;
+    margin-bottom: 20px;
+    list-style: disc;
 }
 
-.invest-now,
-.withdraw-button {
-    background-color: #28a745;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    margin: 5px;
-    transition: background-color 0.3s ease;
+ul li {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: #333;
 }
 
-.invest-now:hover {
-    background-color: #218838;
+/* Horizontal Rule Styling */
+hr {
+    border: 0;
+    border-top: 1px solid #ddd;
+    margin: 30px 0;
 }
 
-.withdraw-button:hover {
-    background-color: #dc3545;
-}
-
-/* Help Icon */
-.help-icon {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #007bff;
-    color: white;
-    padding: 15px;
-    border-radius: 50%;
-    font-size: 24px;
+/* Back to Dashboard Link */
+.container p a {
     text-align: center;
-    cursor: pointer;
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #3498db;
     text-decoration: none;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: color 0.3s ease;
 }
 
-.help-icon:hover {
-    background: #0056b3;
+.container p a:hover {
+    color: #217dbb;
+    text-decoration: underline;
 }
+
 /* Menu Container and Button */
 .menu-container {
     position: absolute;
@@ -271,6 +231,7 @@ h2 {
     text-decoration: underline;
     /* Underline the link on hover */
 }
+
 /* Logout Link */
 .logout-link {
     font-size: 14px;
@@ -306,117 +267,46 @@ h2 {
     font-size: 14px;
     margin: 5px 0;
 }
-
-/* Currency Converter */
-.currency-converter {
-    padding: 20px;
-    margin: 20px auto;
-    max-width: 600px;
-}
-
-.currency-converter table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 10px;
-}
-
-.currency-converter input,
-.currency-converter select {
-    width: 100%;
-    padding: 8px;
-    margin: 5px 0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.currency-converter button {
-    background: #007bff;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.currency-converter button:hover {
-    background: #0056b3;
-}
-
-#conversionResult {
-    font-size: 14px;
-    margin-top: 10px;
-    color: #333;
-}
-
-/* Quick Links Section */
-.quick-links {
-    margin-top: 30px;
-    padding: 20px;
-    background: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-.quick-links h3 {
-    font-size: 24px;
-    margin-bottom: 15px;
-    color: #007bff;
-    font-weight: bold;
-}
-
-.quick-links ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.quick-links ul li {
-    margin: 10px 0;
-}
-
-.quick-links ul li a {
-    text-decoration: none;
-    font-size: 16px;
-    color: #ff0000;
-    transition: color 0.3s ease;
-}
-
-.quick-links ul li a:hover {
-    color: #007bff;
-}
-
-/* Footer */
+/* Footer Styling */
 footer {
-    margin-top: 20px;
-    padding: 10px;
-    background: #f4f4f4;
     text-align: center;
+    padding: 10px;
+    background: none;
     font-size: 14px;
     color: #333;
+    margin-top: auto;
+    /* Push footer to the bottom */
+    width: 100%;
+    /* Ensure footer spans full width */
+    box-shadow: none;
+    /* Add shadow for visibility */
 }
 
-/* Dark Mode */
-body.dark-mode {
-    background: #121212;
-    color: white;
-}
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
 
-body.dark-mode .welcome-banner,
-body.dark-mode .chart-container,
-body.dark-mode .investment-section,
-body.dark-mode .quick-links,
-body.dark-mode .footer {
-    background: #1e1e1e;
-    color: white;
-}
+    h2 {
+        font-size: 1.8rem;
+    }
 
-body.dark-mode .help-icon {
-    background: #333;
-    color: white;
-}
+    h3 {
+        font-size: 1.3rem;
+    }
 
-body.dark-mode .menu-dropdown {
-    background: #1e1e1e;
-    color: white;
+    h4 {
+        font-size: 1.1rem;
+    }
+
+    p,
+    ul li {
+        font-size: 0.9rem;
+    }
+
+    footer {
+        font-size: 0.8rem;
+        padding: 8px;
+    }
 }
