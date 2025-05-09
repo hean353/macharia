@@ -1,10 +1,10 @@
 import os
 import pymongo
 import requests
-from flask import Flask, render_template, request, redirect, session, url_for, jsonify
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify, flash
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
+
 # Hardcoded Configuration (Directly inside the script)
 MONGO_URI = "mongodb+srv://iconichean:EDrWdX9G3pPeLll1@cluster0.n3rva.mongodb.net/"
 FLASK_SECRET_KEY = "your_secure_flask_secret_key"
@@ -106,11 +106,13 @@ def invest():
 @app.route("/upload-profile-picture", methods=["POST"])
 def upload_profile_picture():
     if "user_email" not in session:
-        return jsonify({"error": "User not logged in!"}), 401
+        flash("User not logged in!", "error")
+        return redirect(url_for("account_settings"))
 
     file = request.files.get("profile_pic")
     if not file:
-        return jsonify({"error": "No file uploaded!"}), 400
+        flash("No file uploaded!", "error")
+        return redirect(url_for("account_settings"))
 
     filename = secure_filename(session["user_email"] + ".jpg")
     file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -119,7 +121,8 @@ def upload_profile_picture():
     users_collection.update_one({"email": session["user_email"]}, {"$set": {"profile_picture": filename}})
     session["profile_picture"] = filename
 
-    return jsonify({"success": "Profile picture updated!", "image_url": url_for("static", filename=f"uploads/{filename}")}), 200
+    flash("Profile picture updated!", "success")
+    return redirect(url_for("account_settings"))
 
 ### ✅ Remove Profile Picture
 @app.route("/remove-profile-picture", methods=["POST"])
@@ -134,7 +137,8 @@ def remove_profile_picture():
     users_collection.update_one({"email": session["user_email"]}, {"$set": {"profile_picture": "default.jpg"}})
     session["profile_picture"] = "default.jpg"
 
-    return jsonify({"success": "Profile picture removed!"}), 200
+    flash("Profile picture removed successfully!","success")
+    return redirect(url_for("account_settings"))
 
 ### ✅ Currency Conversion API
 @app.route("/convert_currency", methods=["GET"])
@@ -166,6 +170,15 @@ def logout():
 @app.route("/terms")
 def terms():
     return render_template("terms.html")
+@app.route("/about")
+def about():
+    return render_template("about.html")
+@app.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+@app.route("/contact")
+def contact():
+    return render_template("contact.html")
 @app.route("/initialize_transaction", methods=["POST"])
 def initialize_transaction():
     data = request.json
@@ -181,51 +194,11 @@ def initialize_transaction():
         "email": email,
         "amount": int(amount_kes * 100),  # Convert KES to kobo format
         "currency": "KES",
-        "callback_url": url_for('paystack_callback', _external=True)  # Redirect after payment
+        "callback_url": url_for('paystack_callback', _external=True)  # Redirect users after payment
     }
 
     response = requests.post("https://api.paystack.co/transaction/initialize", headers=headers, json=payload)
-    
-    # Store investment timestamp in database
-    if response.json()["status"]:
-        users_collection.update_one({"email": email}, {
-            "$set": {
-                "investment": amount_kes,
-                "investment_time": datetime.utcnow()  # Track time of investment
-            }
-        })
-
     return jsonify(response.json())  # Send Paystack response to frontend
-@app.route("/withdraw", methods=["POST"])
-def withdraw():
-    if "user_email" not in session:
-        return jsonify({"error": "User not logged in!"}), 401
-
-    user = users_collection.find_one({"email": session["user_email"]})
-
-    if not user or "investment_time" not in user:
-        return jsonify({"error": "No active investment!"}), 400
-
-    # Check if 6 hours have passed
-    investment_time = user["investment_time"]
-    current_time = datetime.utcnow()
-    time_diff = current_time - investment_time
-
-    if time_diff < timedelta(hours=6):
-        remaining_time = (timedelta(hours=6) - time_diff).seconds // 3600
-        return jsonify({"error": f"Investment not matured! Wait {remaining_time} hours."}), 403
-
-    # Calculate payout amount
-    initial_amount = user["investment"]
-    profit_amount = initial_amount * 2  # 200% profit
-    required_payment = initial_amount * 2  # User must pay 200% of initial investment
-
-    return jsonify({
-        "success": True,
-        "message": f"To receive {profit_amount}, you must pay {required_payment} first.",
-        "required_payment": required_payment
-    })
-
 @app.route('/paystack_callback', methods=['GET'])
 def paystack_callback():
     reference = request.args.get('reference')
@@ -250,8 +223,54 @@ def paystack_callback():
         return redirect(url_for("dashboard"))  # Redirect back to dashboard
 
     return "Payment verification failed!", 400
+### ✅ Account Settings Page
+@app.route("/account-settings", methods=["GET", "POST"])
+def account_settings():
+    if "user_email" not in session:
+        return redirect(url_for("login"))
 
+    # Fetch user data from the database
+    user = users_collection.find_one({"email": session["user_email"]})
 
+    if not user:
+        return jsonify({"error": "User data not found!"}), 404
 
+    # Update session data with user details
+    session["user"] = user.get("username", "User")
+    session["user_email"] = user.get("email", "")
+    session["profile_picture"] = user.get("profile_picture", "default.jpg")
+
+    # Render account settings page with session data
+    return render_template("account_settings.html", session=session)
+
+@app.route("/change-password", methods=["POST"])
+def change_password():
+    if "user_email" not in session:
+        flash("User not logged in!", "error")
+        return redirect(url_for("account_settings"))
+
+    old_password = request.form.get("old_password")
+    new_password = request.form.get("new_password")
+    confirm_password = request.form.get("confirm_password")
+
+    if not old_password or not new_password or not confirm_password:
+        flash("All fields are required!", "error")
+        return redirect(url_for("account_settings"))
+
+    if new_password != confirm_password:
+        flash("Passwords do not match!", "error")
+        return redirect(url_for("account_settings"))
+
+    user = users_collection.find_one({"email": session["user_email"]})
+
+    if not user or not check_password_hash(user["password"], old_password):
+        flash("Old password is incorrect!", "error")
+        return redirect(url_for("account_settings"))
+
+    hashed_password = generate_password_hash(new_password)
+    users_collection.update_one({"email": session["user_email"]}, {"$set": {"password": hashed_password}})
+
+    flash("Password changed successfully!", "success")
+    return redirect(url_for("account_settings"))
 if __name__ == "__main__":
     app.run(debug=True)

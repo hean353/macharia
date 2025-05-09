@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" >
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Track live forex rates, manage investments, and convert currencies effortlessly.">
     <meta name="keywords" content="Forex, Investment, Currency Conversion, Dashboard">
@@ -28,32 +28,12 @@
         <!-- Real-Time Forex Graph -->
         <div class="chart-container">
             <h3><i class="fas fa-money-bill-trend-up"></i> Live Forex Rates</h3>
-            <iframe src="https://fxpricing.com/fx-widget/market-currency-rates-widget.php?id=1,2,3,5,14,20" width="100%"
-                height="290"></iframe>
-        </div>
-
-        <!-- User Profile and Dark Mode Toggle -->
-        <div class="top-right-container">
-            <!-- User Profile -->
-            <div class="user-profile" onclick="toggleProfile()">
-                <i class="fas fa-user-circle"></i> <!-- Profile Icon -->
+            <div class="responsive-iframe-container">
+                <iframe src="https://fxpricing.com/fx-widget/market-currency-rates-widget.php?id=1,2,3,5,14,20"
+                    frameborder="0" allowfullscreen>
+                </iframe>
             </div>
-
-            <!-- Dark Mode Toggle -->
-            <button id="themeToggle" class="theme-toggle"><i class="fas fa-moon"></i></button>
         </div>
-
-        <!-- User Details Dropdown -->
-        <div class="user-details" id="userDetails">
-            <img id="profilePicture"
-                src="{{ url_for('static', filename='uploads/' + session.get('profile_picture', 'default.jpg')) }}"
-                alt="Profile Picture">
-            <p><i class="fas fa-user"></i> <strong>Username:</strong> {{ session.get('user', 'Guest') }}</p>
-            <p><i class="fas fa-envelope"></i> <strong>Email:</strong> {{ session.get('user_email', 'Not available') }}
-            </p>
-            <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
-
         <!-- Investment Section -->
         <div class="investment-section">
             <h3><i class="fas fa-wallet"></i> Your Investment in Progress</h3>
@@ -73,9 +53,29 @@
         <div class="menu-container">
             <i class="fas fa-bars menu-icon" onclick="toggleMenu()"></i>
             <div class="menu-dropdown" id="menuDropdown">
-                <p><i class="fas fa-user"></i> <strong>Username:</strong> {{ session.get('user', 'Guest') }}</p>
-                <p><i class="fas fa-envelope"></i> <strong>Email:</strong> {{ session.get('user_email', 'Not available')
-                    }}</p>
+                <!-- Home Section -->
+                <div class="menu-item">
+                    <a href="/dashboard"><i class="fas fa-home"></i> <span>Home</span></a>
+                </div>
+
+                <!-- Profile Section -->
+                <div class="menu-item profile-section">
+                    <a href="javascript:void(0);" onclick="toggleProfileDetails()">
+                        <i class="fas fa-user-circle"></i> <span>Profile</span>
+                    </a>
+                </div>
+                <div class="profile-details" id="profileDetails">
+                    <!-- Profile Picture or Initials -->
+                    <div class="profile-picture-container" id="profilePictureContainer">
+                        <img id="profilePicture"
+                            src="{{ url_for('static', filename='uploads/' + session.get('profile_picture', 'default.jpg')) }}"
+                            alt="Profile Picture">
+                    </div>
+                    <p><i class="fas fa-user"></i> <strong>Username:</strong> {{ session.get('user', 'Guest') }}</p>
+                    <p><i class="fas fa-envelope"></i> <strong>Email:</strong> {{ session.get('user_email', 'Not
+                        available') }}</p>
+                </div>
+
                 <h3><i class="fas fa-file-contract"></i> Subscription Plans</h3>
                 <ul>
                     <li><i class="fas fa-check"></i> <a href="/invest">Basic Plan</a></li>
@@ -84,8 +84,26 @@
                 </ul>
                 <h3><i class="fas fa-list"></i> More Options</h3>
                 <ul>
-                    <li><i class="fas fa-info-circle"></i> <a href="/about">About Us</a></li>
-                    <li><i class="fas fa-file-alt"></i> <a href="{{ url_for('terms') }}">Terms & Conditions</a></li>
+                    <li>
+                        <a href="/account-settings">
+                            <i class="fas fa-cog"></i> <span>Account Settings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/about">
+                            <i class="fas fa-info-circle"></i> <span>About Us</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('terms') }}">
+                            <i class="fas fa-file-alt"></i> <span>Terms & Conditions</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/logout">
+                            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -118,90 +136,50 @@
             <button onclick="convertCurrency()"><i class="fas fa-calculator"></i> Convert</button>
             <p id="conversionResult"><i class="fas fa-sync-alt"></i> Live Conversion Rate: Loading...</p>
         </div>
-    </div>
 
-    <!-- Feedback Form -->
-    <div class="feedback-form">
-        <h3><i class="fas fa-comment-dots"></i> We Value Your Feedback</h3>
-        <textarea placeholder="Let us know your thoughts..."></textarea>
-        <button><i class="fas fa-paper-plane"></i> Submit Feedback</button>
-    </div>
-
-
-
+        <div class="quick-links">
+            <h3><i class="fas fa-link"></i> Quick Links</h3>
+            <ul>
+                <li><a href="/about">About Us</a></li>
+                <li><a href="/contact">Contact Us</a></li>
+                <li><a href="/terms">Terms of Service</a></li>
+                <li><a href="/privacy">Privacy and Policy</a></li>
+            </ul>
+        </div>
     <!-- JavaScript -->
     <script>
-        // Toggle User Profile
-        function toggleProfile() {
-            let details = document.getElementById("userDetails");
-            details.style.display = details.style.display === "block" ? "none" : "block";
-        }
-
-        // Toggle Menu
         function toggleMenu() {
             let menu = document.getElementById("menuDropdown");
             menu.style.display = menu.style.display === "block" ? "none" : "block";
         }
 
-        // Logout Function
-        function logout() {
-            window.location.href = "/logout";
+        function toggleProfileDetails() {
+            let details = document.getElementById("profileDetails");
+            details.style.display = details.style.display === "block" ? "none" : "block";
         }
 
-        // Withdraw Function
-        async function attemptWithdraw() {
-            let response = await fetch("/withdraw", { method: "POST" });
-            let data = await response.json();
+        // Handle Profile Picture Fallback
+        window.onload = function () {
+            const profilePicture = document.getElementById("profilePicture");
+            const profilePictureContainer = document.getElementById("profilePictureContainer");
+            const email = "{{ session.get('user_email', '') }}";
+            const initial = email.charAt(0).toUpperCase();
 
-            if (data.success) {
-                alert(data.message);
-            } else {
-                alert(data.error);
+            profilePicture.onerror = function () {
+                profilePicture.style.display = "none";
+                const fallbackIcon = document.createElement("div");
+                fallbackIcon.className = "profile-initial";
+                fallbackIcon.textContent = initial;
+                profilePictureContainer.appendChild(fallbackIcon);
+            };
+
+            if (profilePicture.getAttribute("src").includes("default.jpg")) {
+                profilePicture.onerror(); // Trigger fallback if it's the default image
             }
-        }
-
-        // Currency Conversion
-        async function convertCurrency() {
-            let amount = document.getElementById("convertAmount").value;
-            let fromCurrency = document.getElementById("fromCurrency").value;
-            let toCurrency = document.getElementById("toCurrency").value;
-
-            if (!amount || isNaN(amount) || amount <= 0) {
-                alert("Please enter a valid amount.");
-                return;
-            }
-
-            try {
-                let response = await fetch(`/convert_currency?amount=${amount}&from=${fromCurrency}&to=${toCurrency}`);
-                let data = await response.json();
-
-                if (data.error) {
-                    document.getElementById("conversionResult").innerText = data.error;
-                } else {
-                    document.getElementById("conversionResult").innerText = `Converted Amount: ${data.converted} ${toCurrency} (Live Rate: ${data.rate})`;
-                }
-            } catch (error) {
-                document.getElementById("conversionResult").innerText = "Error processing conversion.";
-            }
-        }
-
-        // Add Dark Mode Toggle
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            const icon = document.querySelector('#themeToggle i');
-            icon.classList.toggle('fa-moon');
-            icon.classList.toggle('fa-sun');
-        });
+        };
     </script>
     <footer>
-        <ul>
-            <li><a href="/privacy-policy">Privacy Policy</a></li>
-            <li><a href="/terms">Terms & Conditions</a></li>
-            <li><a href="mailto:support@bigwinners.com">Contact Support</a></li>
-        </ul>
-
         <p>&copy; 2025 Big Winners. All rights reserved.</p>
-        
     </footer>
 </body>
 

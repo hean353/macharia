@@ -45,105 +45,50 @@ h2 {
 .chart-container {
     margin-top: 20px;
     padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-iframe {
-    border: 0;
-    border-radius: 8px;
-}
-
-/* Top-Right Container for Profile and Dark Mode */
-.top-right-container {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    /* Space between profile icon and dark mode button */
-}
-
-/* User Profile */
-.user-profile {
-    cursor: pointer;
-}
-
-.user-profile i {
-    font-size: 24px;
-    color: #007bff;
-}
-
-/* Dark Mode Toggle Button */
-.theme-toggle {
     background: none;
-    border: none;
-    color: #007bff;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 50%;
-    transition: background-color 0.3s ease;
+    text-align: center;
+    border-radius: 0;
+    box-shadow: none;
 }
 
-.theme-toggle:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+.chart-container h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
 }
 
-/* User Details Dropdown */
-.user-details {
-    position: absolute;
-    top: 60px;
-    right: 20px;
-    width: 250px;
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    display: none;
-}
-
-.user-details img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    margin: 0 auto 10px;
-}
-
-.user-details p {
-    margin: 8px 0;
-    font-size: 14px;
-}
-
-.user-details button {
-    background: #ff4757;
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.responsive-iframe-container {
+    position: relative;
     width: 100%;
+    max-width: 700px;
+    padding-top: 56.25%;
+    /* Maintain 16:9 aspect ratio */
+    overflow: hidden;
+    margin: 0 auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
 }
 
-.user-details button:hover {
-    background: #e84141;
+.responsive-iframe-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
 }
 
 /* Investment Section */
 .investment-section {
     margin-top: 40px;
     padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
 
 .investment-section h3 {
     color: #007bff;
     margin-bottom: 15px;
+    font-size: 20px;
 }
 
 .investment-section p {
@@ -160,16 +105,21 @@ iframe {
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
+    margin: 5px;
+    transition: background-color 0.3s ease;
 }
 
-.invest-now:hover,
-.withdraw-button:hover {
+.invest-now:hover {
     background-color: #218838;
+}
+
+.withdraw-button:hover {
+    background-color: #dc3545;
 }
 
 /* Help Icon */
 .help-icon {
-    position: absolute ;
+    position: fixed;
     bottom: 20px;
     right: 20px;
     background: #007bff;
@@ -180,175 +130,271 @@ iframe {
     text-align: center;
     cursor: pointer;
     text-decoration: none;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .help-icon:hover {
     background: #0056b3;
 }
-
-/* Menu Container and Dropdown */
+/* Menu Container and Button */
 .menu-container {
     position: absolute;
     top: 20px;
-    left: 20px;
+    /* Set the distance from the top */
+    right: 20px;
+    /* Set the distance from the right */
+    z-index: 1000;
+    /* Ensure it appears above other elements */
 }
 
 .menu-icon {
     font-size: 24px;
+    /* Icon size */
     cursor: pointer;
-    color: black;
+    color: #007bff;
+    /* Default blue color for the icon */
+    padding: 10px;
+    border-radius: 50%;
+    background: #f4f4f4;
+    /* Light background to make it visible */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Add a soft shadow for depth */
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.menu-icon:hover {
+    background: #007bff;
+    /* Highlight background on hover */
+    color: white;
+    /* Change icon color to white on hover */
+}
+
+/* Menu Dropdown */
 .menu-dropdown {
     display: none;
     position: absolute;
-    top: 40px;
-    left: 0;
+    top: 50px;
+    /* Position the dropdown below the menu button */
+    right: 0;
     background: white;
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: left;
     width: 250px;
+    text-align: left;
+    z-index: 1000;
 }
 
-.menu-dropdown p {
-    margin: 8px 0;
+/* Menu Items */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* Space between icon and text */
+    margin-bottom: 20px;
+    /* Space between menu items */
+}
+
+.menu-item a {
+    text-decoration: none;
+    /* Remove underline from links */
+    font-size: 16px;
+    /* Font size for links */
+    color: #007bff;
+    /* Default blue color for links */
+    transition: color 0.3s ease;
+}
+
+.menu-item a:hover {
+    color: #0056b3;
+    /* Darker blue color on hover */
+    text-decoration: underline;
+    /* Underline the link on hover */
+}
+
+/* Icons in Menu Items */
+.menu-item i {
+    font-size: 18px;
+    /* Icon size */
+    color: #007bff;
+    /* Default blue color for icons */
+}
+
+/* Section Headings */
+.menu-dropdown h3 {
     font-size: 14px;
+    color: #555;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
 }
 
+/* Subscription Plans Section */
 .menu-dropdown ul {
-    list-style-type: none;
+    list-style: none;
+    /* Remove default list styling */
     padding: 0;
+    margin: 0;
 }
 
 .menu-dropdown ul li {
-    margin: 10px 0;
+    margin-bottom: 10px;
+    /* Space between list items */
+    display: flex;
+    /* Use flexbox to align items horizontally */
+    align-items: center;
+    /* Vertically align the icon and text */
+    gap: 8px;
+    /* Add space between the tick icon and link */
+}
+
+.menu-dropdown ul li i {
+    color: #007bff;
+    /* Default blue color for the tick icon */
+    font-size: 16px;
+    /* Icon size */
 }
 
 .menu-dropdown ul li a {
     text-decoration: none;
-    color: #007bff;
+    /* Remove underline from links */
     font-size: 14px;
+    /* Font size for links */
+    color: #007bff;
+    /* Default blue color for links */
+    transition: color 0.3s ease;
 }
 
 .menu-dropdown ul li a:hover {
+    color: #0056b3;
+    /* Darker blue color on hover */
     text-decoration: underline;
+    /* Underline the link on hover */
+}
+/* Logout Link */
+.logout-link {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ff4757;
+    /* Red color for logout link */
+}
+
+.logout-link:hover {
+    color: #e84141;
+    text-decoration: underline;
+}
+
+
+/* Profile Details */
+.profile-details {
+    display: none;
+    text-align: center;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+}
+
+.profile-details img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.profile-details p {
+    font-size: 14px;
+    margin: 5px 0;
 }
 
 /* Currency Converter */
 .currency-converter {
-    margin-top: 20px;
-    text-align: center;
     padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
+    margin: 20px auto;
     max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .currency-converter table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
-}
-
-.currency-converter td {
-    padding: 10px;
-    text-align: center;
+    margin-bottom: 10px;
 }
 
 .currency-converter input,
 .currency-converter select {
     width: 100%;
     padding: 8px;
+    margin: 5px 0;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
 
 .currency-converter button {
-    background-color: #007bff;
+    background: #007bff;
     color: white;
     padding: 10px 15px;
     border: none;
-    cursor: pointer;
     border-radius: 5px;
-    margin-top: 10px;
+    cursor: pointer;
 }
 
 .currency-converter button:hover {
-    background-color: #0056b3;
+    background: #0056b3;
 }
 
-/* Feedback Form */
-.feedback-form {
+#conversionResult {
+    font-size: 14px;
+    margin-top: 10px;
+    color: #333;
+}
+
+/* Quick Links Section */
+.quick-links {
     margin-top: 30px;
-    text-align: center;
     padding: 20px;
-    background: white;
-    border-radius: 8px;
+    background: #f9f9f9;
+    border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+    text-align: center;
 }
 
-.feedback-form textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-bottom: 10px;
+.quick-links h3 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #007bff;
+    font-weight: bold;
 }
 
-.feedback-form button {
-    background-color: #007bff;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
+.quick-links ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
-.feedback-form button:hover {
-    background-color: #0056b3;
+.quick-links ul li {
+    margin: 10px 0;
+}
+
+.quick-links ul li a {
+    text-decoration: none;
+    font-size: 16px;
+    color: #ff0000;
+    transition: color 0.3s ease;
+}
+
+.quick-links ul li a:hover {
+    color: #007bff;
 }
 
 /* Footer */
 footer {
     margin-top: 20px;
-    padding: 15px;
-    background: white;
-    color: black;
+    padding: 10px;
+    background: #f4f4f4;
     text-align: center;
-    border-top: none;
-}
-
-footer ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 10px 0 0;
-    display: flex;
-    justify-content: center;
-}
-
-footer ul li {
-    margin: 0 10px;
-}
-
-footer ul li a {
-    color: black;
-    text-decoration: none;
     font-size: 14px;
-}
-
-footer ul li a:hover {
-    text-decoration: underline;
+    color: #333;
 }
 
 /* Dark Mode */
@@ -358,18 +404,12 @@ body.dark-mode {
 }
 
 body.dark-mode .welcome-banner,
+body.dark-mode .chart-container,
 body.dark-mode .investment-section,
-body.dark-mode .currency-converter,
-body.dark-mode .menu-dropdown,
-body.dark-mode .user-details,
-body.dark-mode .feedback-form {
+body.dark-mode .quick-links,
+body.dark-mode .footer {
     background: #1e1e1e;
     color: white;
-}
-
-body.dark-mode footer {
-    background: #1e1e1e;
-    border-top: 3px solid #333;
 }
 
 body.dark-mode .help-icon {
@@ -377,75 +417,7 @@ body.dark-mode .help-icon {
     color: white;
 }
 
-/* Notification */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #007bff;
+body.dark-mode .menu-dropdown {
+    background: #1e1e1e;
     color: white;
-    padding: 15px;
-    border-radius: 8px;
-    display: none;
-    z-index: 1000;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-/* Loading Spinner */
-.spinner {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 50px;
-    height: 50px;
-    background: transparent;
-    border: 5px solid #ccc;
-    border-top: 5px solid #007bff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    z-index: 1000;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .container {
-        width: 95%;
-    }
-
-    .user-details,
-    .menu-dropdown,
-    .investment-section,
-    .currency-converter,
-    .chart-container,
-    .feedback-form {
-        width: 100%;
-        margin: 10px 0;
-        box-shadow: none;
-        border: 1px solid #ddd;
-    }
-
-    .user-details img {
-        width: 60px;
-        height: 60px;
-    }
-
-    .currency-converter table {
-        display: block;
-    }
-
-    .currency-converter td {
-        display: block;
-        width: 100%;
-        margin-bottom: 10px;
-    }
 }

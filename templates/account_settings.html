@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage your account settings, update profile picture, and change password.">
+    <meta name="keywords" content="Account Settings, Profile, Password Change">
+    <meta name="author" content="Big Winners">
+    <title>Account Settings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='account_settings.css') }}">
+    <!-- Font Awesome for icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+</head>
+
+<body>
+    <!-- Account Settings Container -->
+    <div class="settings-container">
+        <h2><i class="fas fa-user-cog"></i> Account Settings</h2>
+
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="alert {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+        <!-- User Information Section -->
+        <div class="user-info">
+            {% if session.profile_picture == "default.jpg" %}
+            <div class="profile-icon">{{ session.user[0] }}</div>
+            {% else %}
+            <img src="{{ url_for('static', filename='uploads/' + session.profile_picture) }}" alt="Profile Picture"
+                class="profile-picture">
+            {% endif %}
+
+            <p><strong>Username:</strong> {{ session.user }}</p>
+            <p><strong>Email:</strong> {{ session.user_email }}</p>
+        </div>
+
+        <!-- Profile Picture Management -->
+        <div class="profile-management">
+            <h3><i class="fas fa-camera"></i> Profile Picture</h3>
+            <form id="profileForm" action="/upload-profile-picture" method="POST" enctype="multipart/form-data">
+                <input type="file" name="profile_pic" accept="image/*">
+                <button type="submit" class="upload-btn">Upload</button>
+            </form>
+            <form id="deleteProfileForm" action="/remove-profile-picture" method="POST">
+                <button type="submit" class="delete-btn">Delete Profile Picture</button>
+            </form>
+        </div>
+
+        <!-- Change Password Section -->
+        <div class="password-change">
+            <h3><i class="fas fa-lock"></i> Change Password</h3>
+            <form id="changePasswordForm" action="/change-password" method="POST">
+                <input type="password" name="old_password" placeholder="Old Password" required>
+                <input type="password" name="new_password" placeholder="New Password" required>
+                <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+                <button type="submit" class="change-password-btn">Change Password</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Function to Remove Profile Picture
+        async function removeProfilePicture() {
+            const response = await fetch("/remove-profile-picture", { method: "POST" });
+            const data = await response.json();
+            if (data.success) {
+                alert(data.success);
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        }
+    </script>
+</body>
+
+</html>
