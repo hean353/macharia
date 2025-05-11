@@ -42,6 +42,48 @@
                 Invest Now</button>
             <button class="withdraw-button" onclick="attemptWithdraw()"><i class="fas fa-money-check-alt"></i>
                 Withdraw</button>
+                <script>
+                    // Add this to your existing JavaScript
+
+                        async function attemptWithdraw() {
+                            try {
+                                // Check investment status first
+                                const response = await fetch('/check_investment_time');
+                                const data = await response.json();
+
+                                if (data.error) {
+                                    alert(data.error);
+                                    return;
+                                }
+
+                                if (data.status === "pending") {
+                                    // Show time remaining
+                                    alert(`Investment still maturing. Time left: ${data.time_left}`);
+                                } else if (data.status === "matured") {
+                                    // Proceed with withdrawal
+                                    if (confirm("Your investment has matured! To withdraw, you need to pay 200% of your investment. Continue?")) {
+                                        const withdrawResponse = await fetch('/withdraw', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            }
+                                        });
+
+                                        const withdrawData = await withdrawResponse.json();
+
+                                        if (withdrawData.status) {
+                                            window.location.href = withdrawData.data.authorization_url;
+                                        } else {
+                                            alert(`Withdrawal failed: ${withdrawData.message}`);
+                                        }
+                                    }
+                                }
+                            } catch (error) {
+                                console.error("Withdrawal error:", error);
+                                alert("An error occurred during withdrawal");
+                            }
+                        }
+                </script>
         </div>
 
         <!-- Help Icon -->

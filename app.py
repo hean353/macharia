@@ -4,7 +4,7 @@ import requests
 from flask import Flask, render_template, request, redirect, session, url_for, jsonify, flash
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from datetime import datetime, timedelta
 # Hardcoded Configuration (Directly inside the script)
 MONGO_URI = "mongodb+srv://iconichean:EDrWdX9G3pPeLll1@cluster0.n3rva.mongodb.net/"
 FLASK_SECRET_KEY = "your_secure_flask_secret_key"
@@ -215,12 +215,20 @@ def paystack_callback():
         amount_paid = data["data"]["amount"] / 100  # Convert kobo to currency
         
         # Update investment status in MongoDB
-        users_collection.update_one({"email": user_email}, {"$set": {"investment": f"${amount_paid} invested"}})
+        users_collection.update_one(
+            {"email": user_email},
+            {
+                "$set": {
+                    "investment": f"${amount_paid} invested",
+                    "investment_amount": amount_paid,
+                    "investment_time": datetime.utcnow()
+                }
+            }
+        )
 
-        # Refresh session so the dashboard reflects changes
+        # Refresh session
         session["investment"] = f"${amount_paid} invested"
-
-        return redirect(url_for("dashboard"))  # Redirect back to dashboard
+        return redirect(url_for("dashboard"))
 
     return "Payment verification failed!", 400
 ### ✅ Account Settings Page
@@ -272,5 +280,116 @@ def change_password():
 
     flash("Password changed successfully!", "success")
     return redirect(url_for("account_settings"))
+
+
+# Add to your existing imports
+
+@app.route('/check_investment_time', methods=['GET'])
+def check_investment_time():
+    if 'user_email' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+    
+    user = users_collection.find_one({"email": session['user_email']})
+    
+    if not user or 'investment_time' not in user:
+        return jsonify({"error": "No active investment"}), 400
+    
+    investment_time = user['investment_time']
+    maturity_time = investment_time + timedelta(hours=6)
+    current_time = datetime.utcnow()
+    
+    if current_time < maturity_time:
+        time_left = maturity_time - current_time
+        return jsonify({
+            "status": "pending",
+            "time_left": str(time_left),
+            "message": f"Your investment is maturing in {time_left}"
+        })
+    else:
+        return jsonify({
+            "status": "matured",
+            "message": "Your investment has matured! You can now withdraw 200% of your investment."
+        })
+
+@app.route('/withdraw', methods=['POST'])
+def withdraw():
+    if 'user_email' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+    
+    user = users_collection.find_one({"email": session['user_email']})
+    
+    if not user or 'investment_amount' not in user:
+        return jsonify({"error": "No active investment"}), 400
+    
+    # Calculate 200% of investment
+    withdrawal_amount = user['investment_amount'] * 2
+    
+    # Initialize Paystack payment for withdrawal fee
+    headers = {
+        "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "email": user['email'],
+        "amount": int(withdrawal_amount * 100),  # Convert to kobo
+        "currency": "KES",
+        "callback_url": url_for('withdraw_callback', _external=True),
+        "metadata": {
+            "withdrawal": True,
+            "original_investment": user['investment_amount']
+        }
+    }
+    
+    response = requests.post(
+        "https://api.paystack.co/transaction/initialize",
+        headers=headers,
+        json=payload
+    )
+    
+    return jsonify(response.json())
+
+@app.route('/withdraw_callback')
+def withdraw_callback():
+    reference = request.args.get('reference')
+    
+    if not reference:
+        return "Payment reference missing", 400
+    
+    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
+    response = requests.get(
+        f"https://api.paystack.co/transaction/verify/{reference}",
+        headers=headers
+    )
+    data = response.json()
+    
+    if data['status'] and data['data']['status'] == "success":
+        email = data['data']['customer']['email']
+        amount_paid = data['data']['amount'] / 100
+        
+        # Process withdrawal
+        users_collection.update_one(
+            {"email": email},
+            {
+                "$set": {
+                    "investment": "Withdrawn",
+                    "investment_amount": 0,
+                    "investment_time": None
+                },
+                "$push": {
+                    "transactions": {
+                        "type": "withdrawal",
+                        "amount": amount_paid,
+                        "date": datetime.utcnow()
+                    }
+                }
+            }
+        )
+        
+        flash("Withdrawal successful! Funds will be processed within 24 hours.", "success")
+        return redirect(url_for('dashboard'))
+    
+    flash("Withdrawal payment failed", "error")
+    return redirect(url_for('dashboard'))
 if __name__ == "__main__":
     app.run(debug=True)
