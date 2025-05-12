@@ -47,69 +47,69 @@
                 Withdraw</button>
                 <script>
                    async function attemptWithdraw() {
-                        const modal = new bootstrap.Modal(document.getElementById('withdrawalModal'));
-                        const modalBody = document.getElementById('withdrawalModalBody');
-                        const proceedBtn = document.getElementById('proceedWithdrawalBtn');
+    const modal = new bootstrap.Modal(document.getElementById('withdrawalModal'));
+    const modalBody = document.getElementById('withdrawalModalBody');
+    const proceedBtn = document.getElementById('proceedWithdrawalBtn');
 
-                        try {
-                            // Show loading state
-                            modalBody.innerHTML = `<div class="text-center py-4">
+    try {
+        // Show loading state
+        modalBody.innerHTML = `<div class="text-center py-4">
             <div class="spinner-border text-primary mb-3" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
             <h5 class="mt-3">Checking withdrawal eligibility...</h5>
         </div>`;
-                            modal.show();
+        modal.show();
 
-                            const response = await fetch("/check_withdrawal", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" }
-                            });
-                            const result = await response.json();
+        const response = await fetch("/check_withdrawal", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+        const result = await response.json();
 
-                            if (result.error) {
-                                modalBody.innerHTML = `<div class="alert alert-danger">${result.error}</div>`;
-                                proceedBtn.style.display = 'none';
-                                return;
-                            }
+        if (result.error) {
+            modalBody.innerHTML = `<div class="alert alert-danger">${result.error}</div>`;
+            proceedBtn.style.display = 'none';
+            return;
+        }
 
-                            if (!result.can_withdraw) {
-                                modalBody.innerHTML = `<div class="alert alert-warning">${result.message}</div>`;
-                                proceedBtn.style.display = 'none';
-                                return;
-                            }
+        if (!result.can_withdraw) {
+            modalBody.innerHTML = `<div class="alert alert-warning">${result.message}</div>`;
+            proceedBtn.style.display = 'none';
+            return;
+        }
 
-                            // Show withdrawal confirmation
-                            modalBody.innerHTML = `<div class="text-center">
+        // Show withdrawal confirmation
+        modalBody.innerHTML = `<div class="text-center">
             <h4>Withdrawal Available!</h4>
-            <p>To withdraw your profits, you need to pay 200% of your initial investment.</p>
+            <p>To withdraw your profits, you need to pay a clause fee.</p>
             <p><strong>Amount to Pay:</strong> $${result.required_payment.toFixed(2)}</p>
         </div>`;
 
-                            proceedBtn.style.display = 'inline-block';
-                            proceedBtn.onclick = async () => {
-                                proceedBtn.disabled = true;
-                                proceedBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+        proceedBtn.style.display = 'inline-block';
+        proceedBtn.onclick = async () => {
+            proceedBtn.disabled = true;
+            proceedBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
 
-                                const paymentResponse = await fetch("/process_withdrawal", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" }
-                                });
-                                const paymentData = await paymentResponse.json();
+            const paymentResponse = await fetch("/process_withdrawal", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+            const paymentData = await paymentResponse.json();
 
-                                if (paymentData.status) {
-                                    window.location.href = paymentData.data.authorization_url;
-                                } else {
-                                    modalBody.innerHTML += `<div class="alert alert-danger mt-3">${paymentData.message}</div>`;
-                                    proceedBtn.disabled = false;
-                                    proceedBtn.innerHTML = 'Try Again';
-                                }
-                            };
-                        } catch (error) {
-                            modalBody.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
-                            proceedBtn.style.display = 'none';
-                        }
-                    } 
+            if (paymentData.status) {
+                window.location.href = paymentData.data.authorization_url;
+            } else {
+                modalBody.innerHTML += `<div class="alert alert-danger mt-3">${paymentData.message}</div>`;
+                proceedBtn.disabled = false;
+                proceedBtn.innerHTML = 'Try Again';
+            }
+        };
+    } catch (error) {
+        modalBody.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        proceedBtn.style.display = 'none';
+    }
+} 
                 </script>
         </div>
 
@@ -267,7 +267,45 @@
                 </div>
             </div>
         </div>
-        
+        <script>
+           // Fetch investment data dynamically
+            document.addEventListener('DOMContentLoaded', function () {
+                fetchInvestmentData();
+
+                // Optionally refresh investment data periodically
+                setInterval(fetchInvestmentData, 30000);
+            });
+
+            async function fetchInvestmentData() {
+                try {
+                    const response = await fetch('/api/investment_details');
+                    const data = await response.json();
+
+                    if (data.error) {
+                        console.error(data.error);
+                        return;
+                    }
+
+                    // Update the investment section dynamically
+                    const investmentElement = document.querySelector('.investment-section p strong');
+                    if (investmentElement) {
+                        investmentElement.textContent = data.amount_invested > 0 ?
+                            `$${data.amount_invested.toFixed(2)} invested` :
+                            'No active investment';
+                    }
+
+                    // Update the welcome banner dynamically
+                    const welcomeBanner = document.querySelector('.welcome-banner p');
+                    if (welcomeBanner) {
+                        welcomeBanner.textContent = data.amount_invested > 0 ?
+                            `You have invested $${data.amount_invested.toFixed(2)} so far. Keep going!` :
+                            'You have invested $0 so far. Keep going!';
+                    }
+                } catch (error) {
+                    console.error('Error fetching investment data:', error);
+                }
+            }
+        </script>
         <footer>
             <p>&copy; 2025 Big Winners. All rights reserved.</p>
         </footer>

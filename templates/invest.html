@@ -122,19 +122,22 @@
                 const email = "{{ session.get('user_email', '') }}";
 
                 if (!email) {
-                    window.location.href = "/login?next=/invest";  // Redirect to login with return URL
+                    window.location.href = "/login?next=/invest";
                     return;
                 }
 
                 try {
+                    // Show loading state
+                    const payButton = document.querySelector(`#${plan} button`);
+                    payButton.disabled = true;
+                    payButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+
                     // Convert USD to KES
                     const conversionResponse = await fetch(`/convert_currency?amount=${amountUSD}&from=USD&to=KES`);
                     const conversionData = await conversionResponse.json();
 
                     if (conversionData.error) {
-                        // Redirect with error flash message
-                        window.location.href = "/invest?error=" + encodeURIComponent(conversionData.error);
-                        return;
+                        throw new Error(conversionData.error);
                     }
 
                     const amountKES = Math.round(conversionData.converted);
@@ -155,53 +158,16 @@
                     const paymentData = await paymentResponse.json();
 
                     if (paymentData.status && paymentData.data.authorization_url) {
+                        // Open Paystack in same window
                         window.location.href = paymentData.data.authorization_url;
                     } else {
-                        window.location.href = "/invest?error=" + encodeURIComponent(
-                            paymentData.message || "Payment initialization failed"
-                        );
+                        throw new Error(paymentData.message || "Payment initialization failed");
                     }
                 } catch (error) {
-                    window.location.href = "/invest?error=" + encodeURIComponent(error.message);
-                }
-            }
-
-            // For withdrawal button
-            async function attemptWithdraw() {
-                try {
-                    const response = await fetch("/check_withdrawal", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" }
-                    });
-
-                    const result = await response.json();
-
-                    if (result.error) {
-                        window.location.href = "/dashboard?error=" + encodeURIComponent(result.error);
-                        return;
-                    }
-
-                    if (!result.can_withdraw) {
-                        window.location.href = "/dashboard?info=" + encodeURIComponent(result.message);
-                        return;
-                    }
-
-                    const paymentResponse = await fetch("/process_withdrawal", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" }
-                    });
-
-                    const paymentData = await paymentResponse.json();
-
-                    if (paymentData.status) {
-                        window.location.href = paymentData.data.authorization_url;
-                    } else {
-                        window.location.href = "/dashboard?error=" + encodeURIComponent(
-                            paymentData.message || "Withdrawal failed"
-                        );
-                    }
-                } catch (error) {
-                    window.location.href = "/dashboard?error=" + encodeURIComponent(error.message);
+                    const payButton = document.querySelector(`#${plan} button`);
+                    payButton.disabled = false;
+                    payButton.innerHTML = 'Pay Now';
+                    alert(error.message);
                 }
             }
 

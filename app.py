@@ -82,23 +82,24 @@ def login():
 ### ✅ Dashboard Route
 @app.route("/dashboard")
 def dashboard():
+    # Always refresh session data from database
     if "user_email" in session:
         user = users_collection.find_one({"email": session["user_email"]})
-        if user and "initial_investment" in user:
-            session["investment"] = f"${user['initial_investment']:.2f} invested"
+        if user:
+            session.update({
+                "user": user.get("username", "User"),
+                "investment": f"${user.get('initial_investment', 0):.2f} invested" if user.get('initial_investment') else "No active investment",
+                "total_investment": f"${user.get('initial_investment', 0):.2f}" if user.get('initial_investment') else "$0",
+                "profile_picture": user.get("profile_picture", "default.jpg")
+            })
+            session.modified = True
     
-    # Handle flash messages from AJAX calls
-    error = request.args.get('error')
-    if error:
-        flash(error, 'error')
-        
-    info = request.args.get('info')
-    if info:
-        flash(info, 'info')
+    # Handle payment success
+    payment_success = request.args.get('payment_success')
+    if payment_success:
+        flash("Payment successful! Your investment is now active.", "success")
     
     return render_template("dashboard.html", session=session)
-
-
 
 
 
@@ -205,7 +206,7 @@ def initialize_transaction():
         if not email or not amount_kes:
             return jsonify({"status": False, "message": "Missing required parameters"}), 400
 
-        # Convert KES to USD for storage
+        # Convert KES to USD for metadata
         conversion_response = requests.get(
             f"http://{request.host}/convert_currency?amount={amount_kes}&from=KES&to=USD"
         )
@@ -229,7 +230,7 @@ def initialize_transaction():
             "callback_url": url_for('paystack_callback', _external=True),
             "metadata": {
                 "plan": plan,
-                "amount_usd": amount_usd
+                "amount_usd": amount_usd  # Store USD amount in metadata
             }
         }
 
@@ -241,17 +242,6 @@ def initialize_transaction():
         response_data = response.json()
 
         if response_data.get("status"):
-            # Store investment details
-            users_collection.update_one(
-                {"email": email},
-                {"$set": {
-                    "investment_time": datetime.utcnow(),
-                    "initial_investment": amount_usd,
-                    "investment_plan": plan,
-                    "investment_status": "pending"
-                }},
-                upsert=True
-            )
             return jsonify(response_data)
         else:
             return jsonify({"status": False, "message": response_data.get("message", "Payment initialization failed")}), 400
@@ -275,48 +265,40 @@ def paystack_callback():
         data = response.json()
 
         if data["status"] and data["data"]["status"] == "success":
+            user_email = data["data"]["customer"]["email"]
+            amount_paid = data["data"]["amount"] / 100  # Convert kobo to KES
             metadata = data["data"].get("metadata", {})
-            
-            # Check if this is a withdrawal payment
-            if metadata.get("is_withdrawal"):
-                user_email = data["data"]["customer"]["email"]
-                amount_paid = data["data"]["amount"] / 100  # Convert kobo to KES
-                
-                # Update user investment status
-                users_collection.update_one(
-                    {"email": user_email},
-                    {"$set": {
-                        "investment_status": "withdrawn",
-                        "last_withdrawal": datetime.utcnow()
-                    }}
-                )
-                
-                flash("Withdrawal payment successful! Your profits are now available.", "success")
-                return redirect(url_for("dashboard"))
-            
-            # Handle regular investment payments (existing code)
-            else:
-                user_email = data["data"]["customer"]["email"]
-                amount_paid = data["data"]["amount"] / 100
-                metadata = data["data"].get("metadata", {})
-                amount_usd = metadata.get("amount_usd", amount_paid / 100)  # Fallback rate
 
-                # Update user investment
-                users_collection.update_one(
-                    {"email": user_email},
-                    {"$set": {
+            # Convert KES to USD for display
+            conversion_response = requests.get(
+                f"http://{request.host}/convert_currency?amount={amount_paid}&from=KES&to=USD"
+            )
+            conversion_data = conversion_response.json()
+            amount_usd = conversion_data.get("converted", amount_paid / 100)  # Fallback rate
+
+            # Update user investment only on successful payment
+            users_collection.update_one(
+                {"email": user_email},
+                {"$set": {
+                    "initial_investment": amount_usd,
+                    "investment_plan": metadata.get("plan", "unknown"),
+                    "investment_time": datetime.utcnow(),
+                    "investment_status": "active"
+                }}
+            )
+
+            # Refresh session data if this is the current user
+            if session.get("user_email") == user_email:
+                user = users_collection.find_one({"email": user_email})
+                if user:
+                    session.update({
                         "investment": f"${amount_usd:.2f} invested",
-                        "investment_status": "active",
-                        "initial_investment": amount_usd,
+                        "total_investment": f"${amount_usd:.2f}",
                         "investment_plan": metadata.get("plan", "unknown")
-                    }}
-                )
+                    })
+                    session.modified = True
 
-                if session.get("user_email") == user_email:
-                    session["investment"] = f"${amount_usd:.2f} invested"
-
-                flash("Payment successful! Your investment is now active.", "success")
-                return redirect(url_for("dashboard"))
+            return redirect(url_for("dashboard", payment_success="true"))
 
         flash("Payment verification failed!", "error")
         return redirect(url_for("invest"))
@@ -498,25 +480,15 @@ def investment_details():
 
     user = users_collection.find_one({"email": session["user_email"]})
     
-    if not user or "investment_time" not in user:
+    if not user or "initial_investment" not in user:
         return jsonify({
             "amount_invested": 0,
-            "maturity_time": None,
-            "start_time": None,
             "investment_status": "none"
         }), 200
 
-    investment_time = user["investment_time"]
-    maturity_time = investment_time + timedelta(hours=6)
-    amount_invested = float(user.get("initial_investment", 0))
-    current_time = datetime.utcnow()
-    
     return jsonify({
-        "amount_invested": amount_invested,
-        "maturity_time": maturity_time.isoformat(),
-        "start_time": investment_time.isoformat(),
-        "current_time": current_time.isoformat(),
-        "investment_status": "active" if current_time < maturity_time else "matured"
+        "amount_invested": float(user.get("initial_investment", 0)),
+        "investment_status": user.get("investment_status", "none")
     }), 200
 if __name__ == "__main__":
     app.run(debug=True)
