@@ -71,7 +71,7 @@
     <div id="basic" class="plan-section">
         <h3>Basic Plan</h3>
         <select id="amount_basic">
-            <option value="0.014">Invest $20 → Earn $100</option>
+            <option value="0.007">Invest $20 → Earn $100</option>
             <option value="30">Invest $30 → Earn $150</option>
             <option value="40">Invest $40 → Earn $200</option>
             <option value="50">Invest $50 → Earn $250</option>
@@ -117,46 +117,93 @@
             document.getElementById(plan).classList.add('active');
         }
 
-       async function convertAndPay(plan) {
-            let amountUSD = document.getElementById(`amount_${plan.toLowerCase()}`).value;
-            let email = "{{ session['user_email'] }}";
+        async function convertAndPay(plan) {
+                const amountUSD = parseFloat(document.getElementById(`amount_${plan}`).value);
+                const email = "{{ session.get('user_email', '') }}";
 
-            if (!email) {
-                alert("No email found! Please log in again.");
-                return;
-            }
-
-            try {
-                // Step 1: Convert USD to KES
-                let exchangeResponse = await fetch(`/convert_currency?amount=${amountUSD}&from=USD&to=KES`);
-                let exchangeData = await exchangeResponse.json();
-
-                if (exchangeData.error) {
-                    alert("Currency conversion failed: " + exchangeData.error);
+                if (!email) {
+                    window.location.href = "/login?next=/invest";  // Redirect to login with return URL
                     return;
                 }
 
-                let amountKES = Math.round(exchangeData.converted);  // Ensure proper KES formatting
+                try {
+                    // Convert USD to KES
+                    const conversionResponse = await fetch(`/convert_currency?amount=${amountUSD}&from=USD&to=KES`);
+                    const conversionData = await conversionResponse.json();
 
-                // Step 2: Initialize Payment with Paystack
-                let paymentResponse = await fetch("/initialize_transaction", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email: email, amount: amountKES })
-                });
+                    if (conversionData.error) {
+                        // Redirect with error flash message
+                        window.location.href = "/invest?error=" + encodeURIComponent(conversionData.error);
+                        return;
+                    }
 
-                let paymentData = await paymentResponse.json();
-                if (paymentData.status) {
-                    window.location.href = paymentData.data.authorization_url;  // Redirect to Paystack
-                } else {
-                    alert("Payment initialization failed: " + paymentData.message);
+                    const amountKES = Math.round(conversionData.converted);
+
+                    // Initialize Paystack payment
+                    const paymentResponse = await fetch("/initialize_transaction", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            amount: amountKES,
+                            plan: plan
+                        })
+                    });
+
+                    const paymentData = await paymentResponse.json();
+
+                    if (paymentData.status && paymentData.data.authorization_url) {
+                        window.location.href = paymentData.data.authorization_url;
+                    } else {
+                        window.location.href = "/invest?error=" + encodeURIComponent(
+                            paymentData.message || "Payment initialization failed"
+                        );
+                    }
+                } catch (error) {
+                    window.location.href = "/invest?error=" + encodeURIComponent(error.message);
                 }
-
-            } catch (error) {
-                alert("Error processing payment: " + error.message);
             }
-        }
 
+            // For withdrawal button
+            async function attemptWithdraw() {
+                try {
+                    const response = await fetch("/check_withdrawal", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    const result = await response.json();
+
+                    if (result.error) {
+                        window.location.href = "/dashboard?error=" + encodeURIComponent(result.error);
+                        return;
+                    }
+
+                    if (!result.can_withdraw) {
+                        window.location.href = "/dashboard?info=" + encodeURIComponent(result.message);
+                        return;
+                    }
+
+                    const paymentResponse = await fetch("/process_withdrawal", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    const paymentData = await paymentResponse.json();
+
+                    if (paymentData.status) {
+                        window.location.href = paymentData.data.authorization_url;
+                    } else {
+                        window.location.href = "/dashboard?error=" + encodeURIComponent(
+                            paymentData.message || "Withdrawal failed"
+                        );
+                    }
+                } catch (error) {
+                    window.location.href = "/dashboard?error=" + encodeURIComponent(error.message);
+                }
+            }
 
     </script>
 

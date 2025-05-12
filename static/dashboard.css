@@ -45,8 +45,7 @@ h2 {
 .chart-container {
     margin-top: 20px;
     padding: 20px;
-    background: none;
-    text-align: center;
+    background: none;   text-align: center;
     border-radius: 0;
     box-shadow: none;
 }
@@ -420,31 +419,268 @@ body.dark-mode .menu-dropdown {
     background: #1e1e1e;
     color: white;
 }
-.flashes {
-    list-style-type: none;
-    padding: 0;
-    margin: 10px 0;
+/* Flash Messages Styling */
+.flash-messages {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
 }
 
-.flash {
-    padding: 10px;
-    margin-bottom: 5px;
+.alert {
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 300px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease-out;
+}
+
+.alert-info {
+    background-color: #17a2b8;
+}
+
+.alert-error {
+    background-color: #dc3545;
+}
+
+.alert-success {
+    background-color: #28a745;
+}
+
+.close-btn {
+    cursor: pointer;
+    font-size: 1.5rem;
+    margin-left: 15px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+/* ===== Withdrawal Modal Styling ===== */
+#withdrawalModal .modal-content {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+#withdrawalModal.show .modal-content {
+    transform: translateY(0);
+}
+
+#withdrawalModal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom: none;
+    padding: 1.5rem;
+    position: relative;
+}
+
+#withdrawalModal .modal-header .btn-close {
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+#withdrawalModal .modal-title {
+    font-weight: 600;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#withdrawalModal .modal-title i {
+    font-size: 1.6rem;
+}
+
+#withdrawalModal .modal-body {
+    padding: 2rem;
+    text-align: center;
+}
+
+#withdrawalModal .alert {
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border: none;
+}
+
+#withdrawalModal .alert i {
+    margin-right: 8px;
+    font-size: 1.2rem;
+}
+
+#withdrawalModal .payment-details {
+    background: #f8f9ff;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin: 1.5rem 0;
+    border-left: 4px solid #667eea;
+}
+
+#withdrawalModal .payment-details p {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+}
+
+#withdrawalModal .payment-details strong {
+    color: #444;
+    font-weight: 600;
+}
+
+#withdrawalModal .modal-footer {
+    border-top: none;
+    padding: 0 2rem 2rem;
+    justify-content: center;
+    gap: 15px;
+}
+
+#withdrawalModal .btn {
+    padding: 0.7rem 1.8rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 140px;
+}
+
+#withdrawalModal .btn-secondary {
+    background: #f1f3ff;
+    color: #667eea;
+    border: 1px solid #e0e4ff;
+}
+
+#withdrawalModal .btn-secondary:hover {
+    background: #e0e4ff;
+}
+
+#withdrawalModal #proceedWithdrawalBtn {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+#withdrawalModal #proceedWithdrawalBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+}
+
+#withdrawalModal #proceedWithdrawalBtn:disabled {
+    background: #ccc;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+    border-width: 0.2em;
+    animation: spin 0.75s linear infinite;
+}
+
+/* Success checkmark animation */
+.checkmark {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: inline-block;
+    background-color: #4caf50;
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.checkmark:after {
+    content: '';
+    position: absolute;
+    left: 22px;
+    top: 12px;
+    width: 15px;
+    height: 25px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
+/* Investment Chart Styles */
+.chart-container {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.chart-container h3 {
+    color: #333;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chart-container h3 i {
+    color: #007bff;
+}
+
+/* Countdown Timer Styles */
+#countdownTimer {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+#countdownTimer .alert {
+    padding: 10px 15px;
     border-radius: 5px;
 }
-
-.flash.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+/* Enhanced Progress Bar Styles */
+.progress {
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.flash.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+.progress-bar {
+    transition: width 1s linear;
 }
 
-.flash.info {
-    background-color: #d1ecf1;
-    color: #0c5460;
-    border: 1px solid #bee5eb; }
+/* Enhanced Alert Styles */
+.alert i {
+    margin-right: 8px;
+}
+
+/* Smooth Chart Animation */
+canvas {
+    transition: all 0.5s ease;
+}
+.chart-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
