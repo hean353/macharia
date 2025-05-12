@@ -41,41 +41,6 @@ h2 {
     font-size: 16px;
 }
 
-/* Real-Time Forex Graph */
-.chart-container {
-    margin-top: 20px;
-    padding: 20px;
-    background: none;   text-align: center;
-    border-radius: 0;
-    box-shadow: none;
-}
-
-.chart-container h3 {
-    font-size: 20px;
-    margin-bottom: 10px;
-}
-
-.responsive-iframe-container {
-    position: relative;
-    width: 100%;
-    height: 50vh;
-    padding-top: 56.25%;
-    overflow-x: hidden;
-    margin: 0 auto;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #a80c0c;
-}
-
-.responsive-iframe-container iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-}
-
 /* Investment Section */
 .investment-section {
     margin-top: 40px;
@@ -115,24 +80,24 @@ h2 {
     background-color: #dc3545;
 }
 
-/* Help Icon */
 .help-icon {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #007bff;
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
     color: white;
-    padding: 15px;
-    border-radius: 50%;
-    font-size: 24px;
-    text-align: center;
-    cursor: pointer;
     text-decoration: none;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .help-icon:hover {
-    background: #0056b3;
+    background-color: #0056b3;
+    /* Slightly darker blue for hover effect */
+    transform: scale(1.1);
+    /* Slightly enlarge the icon on hover */
 }
 /* Menu Container and Button */
 .menu-container {
@@ -626,61 +591,71 @@ body.dark-mode .menu-dropdown {
     border-width: 0 3px 3px 0;
     transform: rotate(45deg);
 }
-/* Investment Chart Styles */
-.chart-container {
-    background: white;
-    border-radius: 8px;
+/* General Styling for the Investment Graph Section */
+.investment-graph-section {
+    background-color: #ffffff;
+    /* White background for clean appearance */
+    border-radius: 10px;
+    /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow for depth */
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px;
+    margin: 20px 0;
 }
 
-.chart-container h3 {
-    color: #333;
+/* Center Align the Title */
+.investment-graph-section h3 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333333;
     margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    text-align: center;
 }
 
-.chart-container h3 i {
-    color: #007bff;
+/* Styling for the Graph Canvas */
+.investment-graph-section canvas {
+    max-width: 100%;
+    /* Ensure responsiveness */
+    height: auto;
+    /* Maintain aspect ratio */
+    min-height: 300px;
+    /* Set a minimum height for the graph */
+    margin: 0 auto;
+    /* Center the graph */
+    display: block;
+    /* Block-level element for proper layout */
 }
 
-/* Countdown Timer Styles */
-#countdownTimer {
+/* Styling for Investment Details */
+#investmentDetails {
+    margin-top: 20px;
+    font-size: 1rem;
+}
+
+/* Style for Individual Detail Items */
+#investmentDetails p {
     font-size: 1.1rem;
     font-weight: bold;
 }
 
-#countdownTimer .alert {
-    padding: 10px 15px;
-    border-radius: 5px;
+/* Invested Amount Styling */
+#investedAmount {
+    color: #28a745;
+    /* Green text for invested amount */
+    font-size: 1.2rem;
 }
-/* Enhanced Progress Bar Styles */
-.progress {
-    border-radius: 5px;
+
+/* Profit Amount Styling */
+#profitAmount {
+    color: #007bff;
+    /* Blue text for profit */
+    font-size: 1.2rem;
+}
+
+/* Add Bootstrap Utility Classes Overrides */
+.investment-graph-section.container {
+    padding: 2rem;
+    /* Add more padding for better spacing */
     background-color: #f8f9fa;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.progress-bar {
-    transition: width 1s linear;
-}
-
-/* Enhanced Alert Styles */
-.alert i {
-    margin-right: 8px;
-}
-
-/* Smooth Chart Animation */
-canvas {
-    transition: all 0.5s ease;
-}
-.chart-container {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
+    /* Light gray background for contrast */
 }
