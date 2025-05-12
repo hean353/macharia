@@ -275,34 +275,48 @@ def paystack_callback():
         data = response.json()
 
         if data["status"] and data["data"]["status"] == "success":
-            user_email = data["data"]["customer"]["email"]
-            amount_paid = data["data"]["amount"] / 100  # Convert kobo to KES
             metadata = data["data"].get("metadata", {})
+            
+            # Check if this is a withdrawal payment
+            if metadata.get("is_withdrawal"):
+                user_email = data["data"]["customer"]["email"]
+                amount_paid = data["data"]["amount"] / 100  # Convert kobo to KES
+                
+                # Update user investment status
+                users_collection.update_one(
+                    {"email": user_email},
+                    {"$set": {
+                        "investment_status": "withdrawn",
+                        "last_withdrawal": datetime.utcnow()
+                    }}
+                )
+                
+                flash("Withdrawal payment successful! Your profits are now available.", "success")
+                return redirect(url_for("dashboard"))
+            
+            # Handle regular investment payments (existing code)
+            else:
+                user_email = data["data"]["customer"]["email"]
+                amount_paid = data["data"]["amount"] / 100
+                metadata = data["data"].get("metadata", {})
+                amount_usd = metadata.get("amount_usd", amount_paid / 100)  # Fallback rate
 
-            # Convert KES to USD for display
-            conversion_response = requests.get(
-                f"http://{request.host}/convert_currency?amount={amount_paid}&from=KES&to=USD"
-            )
-            conversion_data = conversion_response.json()
-            amount_usd = conversion_data.get("converted", amount_paid / 100)  # Fallback rate
+                # Update user investment
+                users_collection.update_one(
+                    {"email": user_email},
+                    {"$set": {
+                        "investment": f"${amount_usd:.2f} invested",
+                        "investment_status": "active",
+                        "initial_investment": amount_usd,
+                        "investment_plan": metadata.get("plan", "unknown")
+                    }}
+                )
 
-            # Update user investment
-            users_collection.update_one(
-                {"email": user_email},
-                {"$set": {
-                    "investment": f"${amount_usd:.2f} invested",
-                    "investment_status": "active",
-                    "initial_investment": amount_usd,
-                    "investment_plan": metadata.get("plan", "unknown")
-                }}
-            )
+                if session.get("user_email") == user_email:
+                    session["investment"] = f"${amount_usd:.2f} invested"
 
-            # Update session
-            if session.get("user_email") == user_email:
-                session["investment"] = f"${amount_usd:.2f} invested"
-
-            flash("Payment successful! Your investment is now active.", "success")
-            return redirect(url_for("dashboard"))
+                flash("Payment successful! Your investment is now active.", "success")
+                return redirect(url_for("dashboard"))
 
         flash("Payment verification failed!", "error")
         return redirect(url_for("invest"))
@@ -423,9 +437,9 @@ def process_withdrawal():
         initial_amount_usd = float(user.get("initial_investment", 0))
         required_payment_usd = initial_amount_usd * 2
 
-        # Convert USD to KES for Paystack payment
+        # Convert USD to KES for Paystack payment (FIXED URL)
         conversion_response = requests.get(
-            f"/convert_currency?amount={required_payment_usd}&from=USD&to=KES"
+            f"http://{request.host}/convert_currency?amount={required_payment_usd}&from=USD&to=KES"
         )
         conversion_data = conversion_response.json()
         
@@ -444,9 +458,12 @@ def process_withdrawal():
             "email": session["user_email"],
             "amount": int(required_payment_kes * 100),  # Convert to kobo
             "currency": "KES",
+            "callback_url": url_for('paystack_callback', _external=True),
             "metadata": {
                 "purpose": "withdrawal_fee",
-                "original_amount_usd": required_payment_usd
+                "original_amount_usd": required_payment_usd,
+                "plan": user.get("investment_plan", "unknown"),
+                "is_withdrawal": True  # Flag to identify withdrawal payments
             }
         }
 
@@ -455,8 +472,22 @@ def process_withdrawal():
             headers=headers,
             json=payload
         )
-        
-        return jsonify(response.json())
+        response_data = response.json()
+
+        if response_data.get("status"):
+            return jsonify({
+                "status": True,
+                "message": "Payment initialized successfully",
+                "data": {
+                    "authorization_url": response_data["data"]["authorization_url"],
+                    "access_code": response_data["data"]["access_code"]
+                }
+            })
+        else:
+            return jsonify({
+                "status": False,
+                "message": response_data.get("message", "Payment initialization failed")
+            }), 400
 
     except Exception as e:
         return jsonify({"error": f"Withdrawal processing failed: {str(e)}"}), 500

