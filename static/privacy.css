@@ -1,22 +1,15 @@
 /* General Styling */
+html,
 body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
+    height: 100%;
     margin: 0;
-    padding: 0;
-    background-color: #f9f9f9;
-    color: #333;
     display: flex;
     flex-direction: column;
-    /* Stack elements vertically */
-    min-height: 100vh;
-    /* Ensure full height of viewport */
 }
 
-/* Main Container */
+/* Allow content to grow, pushing the footer down */
 .container {
-    flex: 1;
-    /* Allow container to grow and push footer down */
+    flex-grow: 1;
     max-width: 900px;
     width: 90%;
     background: #ffffff;
@@ -270,18 +263,14 @@ hr {
 /* Footer Styling */
 footer {
     text-align: center;
-    padding: 10px;
-    background: none;
+    padding: 15px;
+    background: #f4f4f4;
     font-size: 14px;
     color: #333;
-    margin-top: auto;
-    /* Push footer to the bottom */
     width: 100%;
-    /* Ensure footer spans full width */
-    box-shadow: none;
-    /* Add shadow for visibility */
+    position: relative;
+    bottom: 0;
 }
-
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {

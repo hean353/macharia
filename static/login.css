@@ -1,15 +1,25 @@
+/* Ensure full viewport height */
+html,
 body {
-    background-color: #f8f9fa;
-    font-family: Arial, sans-serif;
+    height: 100%;
+    margin: 30px;
+    display: flex;
+    flex-direction: column;
 }
 
-.card {
-    margin-top: 50px;
-    padding: 20px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+/* Container fills the available space */
+.container {
+    flex-grow: 1;
+    /* Pushes footer down */
 }
 
-.input-group-text {
-    background-color: #007bff;
-    color: white;
+/* Footer remains fixed at the bottom */
+footer {
+    text-align: center;
+    padding: 10px;
+    
+    font-size: 0.85rem;
+    color: #333;
+    width: 100%;
+    
 }

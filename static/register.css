@@ -79,3 +79,45 @@ button.btn-primary {
 button.btn-primary:hover {
     background: linear-gradient(to right, #0056b3, #003f8a);
 }
+footer {
+    text-align: center;
+    padding: 10px;
+    background: none;
+    font-size: 14px;
+    color: #333;
+    margin-top: auto;
+    /* Push footer to the bottom */
+    width: 100%;
+    /* Ensure footer spans full width */
+    box-shadow: none;
+    /* Add shadow for visibility */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 1.8rem;
+    }
+
+    h3 {
+        font-size: 1.3rem;
+    }
+
+    h4 {
+        font-size: 1.1rem;
+    }
+
+    p,
+    ul li {
+        font-size: 0.9rem;
+    }
+
+    footer {
+        font-size: 0.8rem;
+        padding: 8px;
+    }
+}
