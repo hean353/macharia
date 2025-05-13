@@ -10,12 +10,31 @@ from flask import Flask, render_template, request, redirect, session, url_for, j
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
+from flask import url_for
+
+def generate_reset_token(email):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt=app.config['SECURITY_PASSWORD_SALT'])
+
+def verify_reset_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(
+            token,
+            salt=app.config['SECURITY_PASSWORD_SALT'],
+            max_age=expiration
+        )
+        return email
+    except Exception:
+        return False
 
 # Configuration
 MONGO_URI = "mongodb+srv://iconichean:EDrWdX9G3pPeLll1@cluster0.n3rva.mongodb.net/"
 FLASK_SECRET_KEY = "your_secure_flask_secret_key"
 PAYSTACK_PUBLIC_KEY = "pk_live_4844d97cb41c83140c5826cac03264051c0379d9"
 PAYSTACK_SECRET_KEY = "sk_live_a33630e17b9047af3a5f26038a7dfffc58d01de1"
+SECURITY_PASSWORD_SALT = 'your-salt'
 
 # Validate configuration
 if not MONGO_URI:
@@ -35,7 +54,7 @@ except pymongo.errors.ConnectionFailure as e:
 # Flask App Configuration
 app = Flask(__name__)
 app.secret_key = FLASK_SECRET_KEY
-
+app.config['SECURITY_PASSWORD_SALT'] = SECURITY_PASSWORD_SALT
 # File Upload Configuration
 UPLOAD_FOLDER = os.path.abspath("static/uploads/")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -46,9 +65,9 @@ app.config.update(
     MAIL_SERVER='smtp.gmail.com',
     MAIL_PORT=587,
     MAIL_USE_TLS=True,
-    MAIL_USERNAME='your_email@gmail.com',  # Your full Gmail address
-    MAIL_PASSWORD='your_app_password',     # 16-digit app password (see below how to get this)
-    MAIL_DEFAULT_SENDER=('Your App Name', 'your_email@gmail.com')
+    MAIL_USERNAME='socialboost254@gmail.com',  # Your full Gmail address
+    MAIL_PASSWORD='ilku dvhf ewnj hctw',     # 16-digit app password (see below how to get this)
+    MAIL_DEFAULT_SENDER=('Bigwinners', 'socialboost254@gmail.com')
 )
 mail = Mail(app)
 ### Routes ###
@@ -63,25 +82,43 @@ def register():
         required_fields = ["fullname", "email", "username", "phone", "country", "password"]
         data = {key: request.form.get(key) for key in required_fields}
 
+        # Check if any of the fields are missing
         if not all(data.values()):
-            return jsonify({"error": "Missing required fields"}), 400
+            flash("Please fill in all required fields.", "danger")
+            return redirect(url_for("home"))  # Redirect to home which has the registration form
 
-        if users_collection.find_one({"email": data["email"]}) or users_collection.find_one({"username": data["username"]}):
-            return jsonify({"error": "User already exists!"}), 409
+        # Check for existing user (keep your existing checks)
+        existing_user = users_collection.find_one({"email": data["email"]})
+        existing_username = users_collection.find_one({"username": data["username"]})
+        existing_phone = users_collection.find_one({"phone": data["phone"]})
 
+        if existing_user:
+            flash("Email already in use. Please choose a different email.", "danger")
+            return redirect(url_for("home"))
+        elif existing_username:
+            flash("Username already in use. Please choose a different username.", "danger")
+            return redirect(url_for("home"))
+        elif existing_phone:
+            flash("Phone number already in use. Please choose a different phone number.", "danger")
+            return redirect(url_for("home"))
+
+        # Hash password and save user
         data["password"] = generate_password_hash(data["password"])
         data["profile_picture"] = "default.jpg"
         users_collection.insert_one(data)
-        user_data = {
-    # ... other fields ...
-    "reset_otp": None,
-    "reset_otp_expires": None,
-    "otp_attempts": 0
-}
 
-        return jsonify({"success": "User registered successfully!"}), 201
-    
-    return render_template("register.html")
+        # Set session data
+        session["user_email"] = data["email"]
+        session["user"] = data["username"]
+        session["profile_picture"] = data["profile_picture"]
+        session["user_id"] = str(data["_id"])  # Convert ObjectId to string
+
+        flash("Registration successful! Welcome to your dashboard.", "success")
+        return redirect(url_for("dashboard"))  # Redirect to dashboard
+
+    return redirect(url_for("home"))  # GET requests go to home
+
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -100,11 +137,12 @@ def login():
                 "user_email": email,
                 "profile_picture": user.get("profile_picture", "default.jpg"),
             })
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("dashboard"))  # Directly redirect to dashboard
 
         return jsonify({"error": "Invalid credentials!"}), 401
 
     return render_template("login.html")
+
 
 @app.route("/forgot_password", methods=["GET", "POST"])
 def forgot_password():
@@ -117,111 +155,64 @@ def forgot_password():
         user = users_collection.find_one({"email": email})
         if not user:
             # Security: Don't reveal if user exists
-            flash("If this email exists in our system, you'll receive an OTP", "info")
-            return redirect(url_for("login"))
+            flash("This email does not exist.", "info")
+            return redirect(url_for("forgot_password"))
 
-        # Generate 6-digit OTP
-        otp = ''.join(random.choices(string.digits, k=6))
-        otp_expires = datetime.utcnow() + timedelta(minutes=10)  # OTP valid for 10 minutes
-
-        # Store OTP in database
-        users_collection.update_one(
-            {"email": email},
-            {"$set": {
-                "reset_otp": otp,
-                "reset_otp_expires": otp_expires,
-                "otp_attempts": 0
-            }}
-        )
+        # Generate token (expires in 1 hour)
+        token = generate_reset_token(email)
+        reset_url = url_for('reset_password', token=token, _external=True)
 
         try:
             msg = Message(
-                "Your Password Reset OTP",
+                "Password Reset Request",
                 recipients=[email],
                 sender=app.config["MAIL_DEFAULT_SENDER"]
             )
-            msg.body = f"""Your password reset OTP is: {otp}
             
-This OTP is valid for 10 minutes. If you didn't request this, please ignore this email."""
+            # Plain text version
+            msg.body = f"""Click the link to reset your password:
+{reset_url}
+
+If you didn't request this, please ignore this email."""
             
+            # HTML version with button
             msg.html = f"""
-            <h2>Password Reset OTP</h2>
-            <p>Your OTP code is: <strong>{otp}</strong></p>
-            <p>This code expires in 10 minutes.</p>
-            <p>If you didn't request this, please ignore this email.</p>
+            <h2>Password Reset Request</h2>
+            <p>Click the button below to reset your password:</p>
+            <a href="{reset_url}" style="
+                background-color: #4CAF50;
+                color: white;
+                padding: 10px 20px;
+                text-decoration: none;
+                border-radius: 5px;
+                display: inline-block;
+            ">Reset Password</a>
+            <p>Or copy this link: {reset_url}</p>
+            <p><em>This link expires in 1 hour.</em></p>
             """
             
             mail.send(msg)
-            flash("OTP has been sent to your email", "success")
-            # Redirect to OTP verification page
-            return redirect(url_for("verify_otp", email=email))
+            flash("Password reset link has been sent to your email", "success")
+            return redirect(url_for("forgot_password"))
         
         except Exception as e:
             print(f"Email error: {str(e)}")
-            flash("Failed to send OTP. Please try again later.", "error")
+            flash("Failed to send reset link. Please try again later.", "error")
             return redirect(url_for("forgot_password"))
-
+    
     return render_template("forgot_password.html")
-@app.route("/verify_otp/<email>", methods=["GET", "POST"])
-def verify_otp(email):
-    if request.method == "POST":
-        user_otp = request.form.get("otp")
-        new_password = request.form.get("new_password")
-        confirm_password = request.form.get("confirm_password")
-
-        if not all([user_otp, new_password, confirm_password]):
-            flash("All fields are required", "error")
-            return redirect(url_for("verify_otp", email=email))
-
-        if new_password != confirm_password:
-            flash("Passwords do not match", "error")
-            return redirect(url_for("verify_otp", email=email))
-
-        user = users_collection.find_one({"email": email})
-        
-        # Check if OTP exists and is not expired
-        if not user or not user.get("reset_otp") or user.get("reset_otp_expires") < datetime.utcnow():
-            flash("Invalid or expired OTP", "error")
-            return redirect(url_for("forgot_password"))
-
-        # Check OTP attempts
-        if user.get("otp_attempts", 0) >= 3:
-            flash("Too many attempts. Please request a new OTP.", "error")
-            return redirect(url_for("forgot_password"))
-
-        if user_otp != user["reset_otp"]:
-            # Increment failed attempts
-            users_collection.update_one(
-                {"email": email},
-                {"$inc": {"otp_attempts": 1}}
-            )
-            flash("Invalid OTP", "error")
-            return redirect(url_for("verify_otp", email=email))
-
-        # Update password and clear OTP fields
-        hashed_password = generate_password_hash(new_password)
-        users_collection.update_one(
-            {"email": email},
-            {"$set": {
-                "password": hashed_password,
-                "reset_otp": None,
-                "reset_otp_expires": None,
-                "otp_attempts": 0
-            }}
-        )
-        
-        flash("Password updated successfully! Please login", "success")
-        return redirect(url_for("login"))
-
-    return render_template("verify_otp.html", email=email)
 
 @app.route("/reset_password/<token>", methods=["GET", "POST"])
 def reset_password(token):
-    user = users_collection.find_one({"reset_token": token})
-    
-    # Check if token is valid and not expired
-    if not user or user.get("reset_token_expires", datetime.min) < datetime.utcnow():
+    # Verify token
+    email = verify_reset_token(token)
+    if not email:
         flash("Invalid or expired reset link", "error")
+        return redirect(url_for("forgot_password"))
+
+    user = users_collection.find_one({"email": email})
+    if not user:
+        flash("User not found", "error")
         return redirect(url_for("forgot_password"))
 
     if request.method == "POST":
@@ -232,15 +223,13 @@ def reset_password(token):
             flash("Passwords don't match", "error")
             return redirect(url_for("reset_password", token=token))
 
+        # Update password and clear token
         hashed_password = generate_password_hash(new_password)
         users_collection.update_one(
-            {"email": user["email"]}, 
-            {"$set": {
-                "password": hashed_password,
-                "reset_token": None,
-                "reset_token_expires": None
-            }}
+            {"email": email},
+            {"$set": {"password": hashed_password}}
         )
+        
         flash("Password updated successfully! Please login", "success")
         return redirect(url_for("login"))
 
@@ -255,20 +244,16 @@ def dashboard():
         session.clear()
         return redirect(url_for("login"))
 
-    # Update session data
+    # Update session data with any new information
     session.update({
         "user": user.get("username", "User"),
         "investment": f"${user.get('initial_investment', 0):.2f} invested" if user.get('initial_investment') else "No active investment",
         "total_investment": f"${user.get('initial_investment', 0):.2f}" if user.get('initial_investment') else "$0",
-        "profile_picture": user.get("profile_picture", "default.jpg")
+        "profile_picture": user.get("profile_picture", "default.jpg"),
+        "user_id": str(user["_id"])  # Ensure user_id is in session
     })
 
-    # Handle payment success
-    if request.args.get('payment_success'):
-        flash("Payment successful! Your investment is now active.", "success")
-
     return render_template("dashboard.html", session=session)
-
 @app.route("/forex_data")
 def forex_data():
     return jsonify({"forex_url": "https://fxpricing.com/fx-widget/market-currency-rates-widget.php?id=1,2,3,5,14,20"})
