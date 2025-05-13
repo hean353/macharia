@@ -33,7 +33,7 @@ def verify_reset_token(token, expiration=3600):
 MONGO_URI = "mongodb+srv://iconichean:EDrWdX9G3pPeLll1@cluster0.n3rva.mongodb.net/"
 FLASK_SECRET_KEY = "your_secure_flask_secret_key"
 PAYSTACK_PUBLIC_KEY = "pk_live_4844d97cb41c83140c5826cac03264051c0379d9"
-PAYSTACK_SECRET_KEY = "sk_live_a33630e17b9047af3a5f26038a7dfffc58d01de1"
+PAYSTACK_SECRET_KEY = "sk_live_70256e6f370946e04e3b93ad7c8b4537a3514b1e"
 SECURITY_PASSWORD_SALT = 'your-salt'
 
 # Validate configuration
