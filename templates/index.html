@@ -28,8 +28,7 @@
     <div class="container-fluid register-page">
         <div class="row">
             <!-- Left Section -->
-            <div
-                class="col-md-5 left-section text-white text-center d-flex flex-column justify-content-center align-items-center">
+            <div class="col-md-5 left-section text-white text-center d-flex flex-column justify-content-center align-items-center">
                 <h2 class="mb-4">Welcome to Big Winners</h2>
                 <p class="text-center">
                     Already have an account? <a href="/login" class="btn btn-light mt-3">Login</a>
@@ -103,15 +102,14 @@
     <!-- Custom JS -->
     <script>
         document.getElementById('registerForm').addEventListener('submit', function (event) {
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
 
-            if (password !== confirmPassword) {
-                event.preventDefault();
-                alert('Passwords do not match!');
-            }
-            // Let the form submit normally to Flask's /register route
-        });
+                if (password !== confirmPassword) {
+                    event.preventDefault();
+                    alert('Passwords do not match!');
+                }
+            });
     </script>
 </body>
 <footer>

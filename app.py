@@ -12,6 +12,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from flask import url_for
+from bson import ObjectId
 
 def generate_reset_token(email):
     serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
@@ -32,7 +33,7 @@ def verify_reset_token(token, expiration=3600):
 # Configuration
 MONGO_URI = "mongodb+srv://iconichean:EDrWdX9G3pPeLll1@cluster0.n3rva.mongodb.net/"
 FLASK_SECRET_KEY = "your_secure_flask_secret_key"
-PAYSTACK_PUBLIC_KEY = "pk_live_4844d97cb41c83140c5826cac03264051c0379d9"
+PAYSTACK_PUBLIC_KEY = "pk_live_c4739380828ad87d3280946a60cf07fc965ab8af"
 PAYSTACK_SECRET_KEY = "sk_live_70256e6f370946e04e3b93ad7c8b4537a3514b1e"
 SECURITY_PASSWORD_SALT = 'your-salt'
 
@@ -65,12 +66,24 @@ app.config.update(
     MAIL_SERVER='smtp.gmail.com',
     MAIL_PORT=587,
     MAIL_USE_TLS=True,
-    MAIL_USERNAME='socialboost254@gmail.com',  # Your full Gmail address
-    MAIL_PASSWORD='ilku dvhf ewnj hctw',     # 16-digit app password (see below how to get this)
-    MAIL_DEFAULT_SENDER=('Bigwinners', 'socialboost254@gmail.com')
+    MAIL_USERNAME='winnersb27@gmail.com',  # Your full Gmail address
+    MAIL_PASSWORD='dutu tkvw gynk qebe',     # 16-digit app password (see below how to get this)
+    MAIL_DEFAULT_SENDER=('Big Winners', 'winnersb27@gmail.com')
 )
 mail = Mail(app)
-### Routes ###
+# Helper Functions
+def generate_reset_token(email):
+    serializer = URLSafeTimedSerializer(app.secret_key)
+    return serializer.dumps(email, salt=app.config["SECURITY_PASSWORD_SALT"])
+
+
+def verify_reset_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(app.secret_key)
+    try:
+        email = serializer.loads(token, salt=app.config["SECURITY_PASSWORD_SALT"], max_age=expiration)
+        return email
+    except Exception:
+        return False
 
 @app.route("/")
 def home():
@@ -79,68 +92,84 @@ def home():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        required_fields = ["fullname", "email", "username", "phone", "country", "password"]
-        data = {key: request.form.get(key) for key in required_fields}
+        try:
+            # Collect user input
+            required_fields = ["fullname", "email", "username", "phone", "country", "password", "security_question", "security_answer", "gender"]
+            data = {key: request.form.get(key) for key in required_fields}
 
-        # Check if any of the fields are missing
-        if not all(data.values()):
-            flash("Please fill in all required fields.", "danger")
-            return redirect(url_for("home"))  # Redirect to home which has the registration form
+            # Check for missing fields
+            if not all(data.values()):
+                flash("Please fill in all required fields.", "danger")
+                return redirect(url_for("home"))
 
-        # Check for existing user (keep your existing checks)
-        existing_user = users_collection.find_one({"email": data["email"]})
-        existing_username = users_collection.find_one({"username": data["username"]})
-        existing_phone = users_collection.find_one({"phone": data["phone"]})
+            # Check for duplicate entries in MongoDB
+            if users_collection.find_one({"email": data["email"]}):
+                flash("Email already in use. Please choose a different email.", "danger")
+                return redirect(url_for("home"))
+            if users_collection.find_one({"username": data["username"]}):
+                flash("Username already in use. Please choose a different username.", "danger")
+                return redirect(url_for("home"))
+            if users_collection.find_one({"phone": data["phone"]}):
+                flash("Phone number already in use. Please choose a different phone number.", "danger")
+                return redirect(url_for("home"))
 
-        if existing_user:
-            flash("Email already in use. Please choose a different email.", "danger")
+            # Hash the password
+            data["password"] = generate_password_hash(data["password"], method="scrypt")
+
+            # Add default fields
+            data["profile_picture"] = "default.jpg"
+            data["initial_investment"] = 0.0
+            data["investment_time"] = None
+            data["investment_status"] = "none"
+
+            # Insert the user into MongoDB
+            result = users_collection.insert_one(data)
+
+            # Update the session
+            session.update({
+                "user_email": data["email"],
+                "user": data["username"],
+                "profile_picture": data["profile_picture"],
+                "user_id": str(result.inserted_id),
+            })
+
+            flash("Registration successful! Welcome to your dashboard.", "success")
+            return redirect(url_for("dashboard"))
+        except Exception as e:
+            # Log the exact error for debugging
+            print(f"Error during registration: {e}")
+            flash("An error occurred during registration. Please try again later.", "danger")
             return redirect(url_for("home"))
-        elif existing_username:
-            flash("Username already in use. Please choose a different username.", "danger")
-            return redirect(url_for("home"))
-        elif existing_phone:
-            flash("Phone number already in use. Please choose a different phone number.", "danger")
-            return redirect(url_for("home"))
-
-        # Hash password and save user
-        data["password"] = generate_password_hash(data["password"])
-        data["profile_picture"] = "default.jpg"
-        users_collection.insert_one(data)
-
-        # Set session data
-        session["user_email"] = data["email"]
-        session["user"] = data["username"]
-        session["profile_picture"] = data["profile_picture"]
-        session["user_id"] = str(data["_id"])  # Convert ObjectId to string
-
-        flash("Registration successful! Welcome to your dashboard.", "success")
-        return redirect(url_for("dashboard"))  # Redirect to dashboard
-
-    return redirect(url_for("home"))  # GET requests go to home
-
-
+    return redirect(url_for("home"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
+        try:
+            email = request.form.get("email")
+            password = request.form.get("password")
 
-        if not email or not password:
-            return jsonify({"error": "Missing email or password"}), 400
+            if not email or not password:
+                flash("Email and password are required.", "danger")
+                return redirect(url_for("login"))
 
-        user = users_collection.find_one({"email": email})
-        if user and check_password_hash(user["password"], password):
-            session.update({
-                "user_id": str(user["_id"]),
-                "user": user["username"],
-                "user_email": email,
-                "profile_picture": user.get("profile_picture", "default.jpg"),
-            })
-            return redirect(url_for("dashboard"))  # Directly redirect to dashboard
+            # Find the user by email
+            user = users_collection.find_one({"email": email})
+            if user and check_password_hash(user["password"], password):
+                session.update({
+                    "user_id": str(user["_id"]),
+                    "user": user["username"],
+                    "user_email": email,
+                    "profile_picture": user.get("profile_picture", "default.jpg"),
+                })
+                return redirect(url_for("dashboard"))
 
-        return jsonify({"error": "Invalid credentials!"}), 401
-
+            flash("Invalid email or password.", "danger")
+            return redirect(url_for("login"))
+        except Exception as e:
+            print(f"Error during login: {e}")
+            flash("An error occurred during login. Please try again later.", "danger")
+            return redirect(url_for("login"))
     return render_template("login.html")
 
 
@@ -244,16 +273,33 @@ def dashboard():
         session.clear()
         return redirect(url_for("login"))
 
-    # Update session data with any new information
-    session.update({
-        "user": user.get("username", "User"),
-        "investment": f"${user.get('initial_investment', 0):.2f} invested" if user.get('initial_investment') else "No active investment",
-        "total_investment": f"${user.get('initial_investment', 0):.2f}" if user.get('initial_investment') else "$0",
-        "profile_picture": user.get("profile_picture", "default.jpg"),
-        "user_id": str(user["_id"])  # Ensure user_id is in session
-    })
+    # Calculate investment progress
+    investment_status = user.get("investment_status", "none")
+    time_progress, time_remaining = 0, "0h 0m"
 
+    if investment_status == "active" and user.get("investment_time"):
+        investment_time = user["investment_time"]
+        current_time = datetime.utcnow()
+        maturity_time = investment_time + timedelta(hours=6)
+        elapsed_time = (current_time - investment_time).total_seconds()
+        total_duration = timedelta(hours=6).total_seconds()
+        time_progress = min(max(elapsed_time / total_duration, 0), 1)
+        time_left = max(maturity_time - current_time, timedelta(0))
+        hours, minutes = divmod(time_left.seconds, 3600)
+        time_remaining = f"{hours}h {minutes}m"
+
+    initial_investment = float(user.get("initial_investment", 0))
+    session.update(
+        {
+            "investment": f"${initial_investment:.2f} invested" if initial_investment > 0 else "No active investment",
+            "total_investment": f"${initial_investment:.2f}",
+            "investment_status": investment_status,
+            "time_progress": round(time_progress * 100, 1),
+            "time_remaining": time_remaining,
+        }
+    )
     return render_template("dashboard.html", session=session)
+
 @app.route("/forex_data")
 def forex_data():
     return jsonify({"forex_url": "https://fxpricing.com/fx-widget/market-currency-rates-widget.php?id=1,2,3,5,14,20"})
@@ -417,7 +463,6 @@ def initialize_transaction():
 @app.route('/paystack_callback', methods=['GET'])
 def paystack_callback():
     reference = request.args.get('reference')
-
     if not reference:
         flash("Payment reference missing!", "error")
         return redirect(url_for("invest"))
@@ -429,6 +474,7 @@ def paystack_callback():
             headers=headers
         )
         data = response.json()
+        print(f"Paystack verification response: {data}")
 
         if data["status"] and data["data"]["status"] == "success":
             metadata = data["data"].get("metadata", {})
@@ -436,38 +482,53 @@ def paystack_callback():
             
             if not user_id:
                 flash("User identification missing in payment", "error")
-                return redirect(url_for("invest"))
+                return redirect(url_for("dashboard"))
 
-            amount_usd = metadata.get("amount_usd", 0)
-            
-            # Update user investment
-            users_collection.update_one(
-                {"_id": user_id},
-                {"$set": {
-                    "initial_investment": amount_usd,
-                    "investment_plan": metadata.get("plan", "unknown"),
-                    "investment_time": datetime.utcnow(),
-                    "investment_status": "active"
-                }}
+            # Validate ObjectId
+            try:
+                user_id_obj = ObjectId(user_id)
+            except Exception as e:
+                print(f"Invalid ObjectId: {user_id}, Error: {e}")
+                flash("Invalid user ID", "error")
+                return redirect(url_for("dashboard"))
+
+            # Proceed with updates
+            amount_usd = float(metadata.get("amount_usd", 0))
+            investment_time = datetime.utcnow()
+            update_data = {
+                "initial_investment": amount_usd,
+                "investment_time": investment_time,
+                "investment_status": "active"
+            }
+
+            # Update MongoDB
+            result = users_collection.update_one(
+                {"_id": user_id_obj},  # Use the validated ObjectId
+                {"$set": update_data}
             )
+            print(f"Updated user {user_id} with: {update_data}")
 
-            # Refresh session if current user
+            if result.modified_count == 0:
+                print("Warning: No document was updated. Check the user ID.")
+
+            # Update session if the current user matches
             if session.get("user_id") == user_id:
                 session.update({
                     "investment": f"${amount_usd:.2f} invested",
                     "total_investment": f"${amount_usd:.2f}",
-                    "investment_plan": metadata.get("plan", "unknown")
+                    "investment_status": "active"
                 })
 
-            return redirect(url_for("dashboard", payment_success="true"))
+            flash("Payment successful! Your investment is now active.", "success")
+            return redirect(url_for("dashboard"))
 
         flash("Payment verification failed!", "error")
-        return redirect(url_for("invest"))
+        return redirect(url_for("dashboard"))
 
     except Exception as e:
-        flash(f"Payment processing error: {str(e)}", "error")
-        return redirect(url_for("invest"))
-
+        print(f"Error in paystack_callback: {e}")
+        flash("Payment processing error.", "error")
+        return redirect(url_for("dashboard"))
 @app.route("/account-settings", methods=["GET", "POST"])
 def account_settings():
     if "user_email" not in session:
@@ -674,15 +735,16 @@ def investment_details():
         return jsonify({"error": "User not logged in!"}), 401
 
     user = users_collection.find_one({"email": session["user_email"]})
-    
-    if not user or "initial_investment" not in user:
+    print(f"Fetched user data for /api/investment_details: {user}")  # Add this log
+
+    if not user:
         return jsonify({
-            "amount_invested": 0,
+            "amount_invested": 0.0,
             "investment_status": "none"
         }), 200
 
     return jsonify({
-        "amount_invested": float(user.get("initial_investment", 0)),
+        "amount_invested": float(user.get("initial_investment", 0.0)),
         "investment_status": user.get("investment_status", "none")
     }), 200
 
@@ -692,39 +754,64 @@ def realtime_investment_data():
         return jsonify({"error": "User not logged in!"}), 401
 
     user = users_collection.find_one({"email": session["user_email"]})
-    
-    if not user or "investment_time" not in user:
+    print(f"Fetched user data for /api/realtime_investment_data: {user}")  # Add this log
+
+    if not user:
         return jsonify({
-            "error": "No active investment found!",
-            "timestamp": datetime.utcnow().isoformat(),
-            "profit": 0,
-            "initial_investment": 0,
+            "error": "User not found",
+            "profit": 0.0,
+            "initial_investment": 0.0,
+            "current_value": 0.0,
+            "time_progress": 0.0,
+            "hours_remaining": 0,
+            "minutes_remaining": 0,
             "investment_status": "none"
         }), 200
 
-    investment_time = user["investment_time"]
-    initial_investment = float(user.get("initial_investment", 0))
-    current_time = datetime.utcnow()
-    maturity_time = investment_time + timedelta(hours=6)
+    # Handle missing investment_time
+    investment_time = user.get("investment_time")
+    if not investment_time:
+        return jsonify({
+            "profit": 0.0,
+            "initial_investment": float(user.get("initial_investment", 0.0)),
+            "current_value": 0.0,
+            "time_progress": 0.0,
+            "hours_remaining": 0,
+            "minutes_remaining": 0,
+            "investment_status": user.get("investment_status", "none")
+        }), 200
 
-    elapsed_time = current_time - investment_time
-    time_progress = min(max(elapsed_time.total_seconds() / (6 * 3600), 0), 1)
+    try:
+        # Calculate investment progress
+        investment_time = user["investment_time"]
+        initial_investment = float(user.get("initial_investment", 0.0))
+        current_time = datetime.utcnow()
+        maturity_time = investment_time + timedelta(hours=6)
 
-    profit = initial_investment * 5 * time_progress
-    time_remaining = max((maturity_time - current_time).total_seconds(), 0)
-    hours_remaining = int(time_remaining // 3600)
-    minutes_remaining = int((time_remaining % 3600) // 60)
+        elapsed_time = (current_time - investment_time).total_seconds()
+        total_duration = timedelta(hours=6).total_seconds()
+        time_progress = min(max(elapsed_time / total_duration, 0), 1)
 
-    return jsonify({
-        "timestamp": current_time.isoformat(),
-        "profit": round(profit, 2),
-        "initial_investment": round(initial_investment, 2),
-        "time_progress": round(time_progress * 100, 2),
-        "hours_remaining": hours_remaining,
-        "minutes_remaining": minutes_remaining,
-        "investment_status": user.get("investment_status", "active"),
-        "maturity_time": maturity_time.isoformat()
-    }), 200
+        current_value = initial_investment * (1 + 4 * time_progress)
+        profit = current_value - initial_investment
 
+        hours_remaining = max(int((maturity_time - current_time).total_seconds() // 3600), 0)
+        minutes_remaining = max(int(((maturity_time - current_time).total_seconds() % 3600) // 60), 0)
+
+        print(f"Calculated data: profit={profit}, current_value={current_value}, time_progress={time_progress}")  # Add this log
+
+        return jsonify({
+            "profit": round(profit, 2),
+            "initial_investment": round(initial_investment, 2),
+            "current_value": round(current_value, 2),
+            "time_progress": round(time_progress * 100, 2),
+            "hours_remaining": hours_remaining,
+            "minutes_remaining": minutes_remaining,
+            "investment_status": user.get("investment_status", "active")
+        }), 200
+    except Exception as e:
+        print(f"Error in /api/realtime_investment_data: {e}")
+        return jsonify({"error": "Failed to fetch investment data"}), 500
+    
 if __name__ == "__main__":
     app.run(debug=True)
