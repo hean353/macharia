@@ -625,17 +625,20 @@ body.dark-mode .menu-dropdown {
 }
 
 /* Investment details */
-#investmentDetails .row {
+#investmentDetails {
     display: flex;
+    justify-content: space-around;
+    /* Ensures even spacing */
+    align-items: center;
+    /* Centers items vertically */
     flex-wrap: wrap;
-    justify-content: center;
-    text-align: center;
+    /* Allows items to stack on smaller screens */
 }
 
 #investmentDetails .col-md-6 {
-    flex: 1 1 50%;
-    max-width: 50%;
-    padding: 10px;
+    flex: 1 1 45%;
+    /* Ensures both take almost equal width */
+    text-align: center;
 }
 
 /* Responsive tweaks */
