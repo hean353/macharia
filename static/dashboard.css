@@ -613,7 +613,7 @@ body.dark-mode .menu-dropdown {
     /* Subtle shadow for depth */
     padding: 20px;
     margin: 20px 0;
-    height: 100vh;
+    height: 50vh;
 }
 
 /* Center Align the Title */
