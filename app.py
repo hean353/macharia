@@ -86,8 +86,8 @@ def verify_reset_token(token, expiration=3600):
         return False
 
 @app.route("/")
-def home():
-    return render_template("index.html")
+def welcome():
+    return render_template("welcome.html")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -100,18 +100,18 @@ def register():
             # Check for missing fields
             if not all(data.values()):
                 flash("Please fill in all required fields.", "danger")
-                return redirect(url_for("home"))
+                return redirect(url_for("register"))
 
             # Check for duplicate entries in MongoDB
             if users_collection.find_one({"email": data["email"]}):
                 flash("Email already in use. Please choose a different email.", "danger")
-                return redirect(url_for("home"))
+                return redirect(url_for("register"))
             if users_collection.find_one({"username": data["username"]}):
                 flash("Username already in use. Please choose a different username.", "danger")
-                return redirect(url_for("home"))
+                return redirect(url_for("register"))
             if users_collection.find_one({"phone": data["phone"]}):
                 flash("Phone number already in use. Please choose a different phone number.", "danger")
-                return redirect(url_for("home"))
+                return redirect(url_for("register"))
 
             # Hash the password
             data["password"] = generate_password_hash(data["password"], method="scrypt")
@@ -139,9 +139,10 @@ def register():
             # Log the exact error for debugging
             print(f"Error during registration: {e}")
             flash("An error occurred during registration. Please try again later.", "danger")
-            return redirect(url_for("home"))
-    return redirect(url_for("home"))
+            return redirect(url_for("register"))
 
+    # Render the registration page (index.html) for GET requests
+    return render_template("index.html")
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -171,6 +172,9 @@ def login():
             flash("An error occurred during login. Please try again later.", "danger")
             return redirect(url_for("login"))
     return render_template("login.html")
+@app.route("/index")
+def index():
+    return render_template("index.html")
 
 
 @app.route("/forgot_password", methods=["GET", "POST"])
@@ -384,7 +388,7 @@ def convert_currency():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("home"))
+    return redirect(url_for("welcome"))
 
 @app.route("/terms")
 def terms():

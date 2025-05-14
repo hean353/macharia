@@ -264,11 +264,23 @@ h2 {
     width: 80px;
     height: 80px;
     border-radius: 50%;
+    
+}
+#profilePictureContainer{
+    background: blue;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 60px;
 }
 
 .profile-details p {
     font-size: 14px;
     margin: 5px 0;
+    
 }
 
 /* Currency Converter */
@@ -659,4 +671,32 @@ body.dark-mode .menu-dropdown {
     /* Add more padding for better spacing */
     background-color: #f8f9fa;
     /* Light gray background for contrast */
+}
+.chart-container {
+    position: relative;
+    width: 100%;
+    /* Take full width of the parent container */
+    height: 0;
+    padding-bottom: 56.25%;
+    /* Maintain a 16:9 aspect ratio */
+    margin: 0 auto;
+    /* Center the chart */
+}
+
+.chart-container canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    /* Use full width of the container */
+    height: 100% !important;
+    /* Use full height of the container */
+}
+
+/* Adjustments for smaller devices */
+@media (max-width: 768px) {
+    .chart-container {
+        padding-bottom: 75%;
+        /* Adjust aspect ratio for smaller screens */
+    }
 }

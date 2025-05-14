@@ -177,6 +177,19 @@ footer {
     width: 250px;
     text-align: left;
     z-index: 1000;
+    /* Ensure the dropdown is above other elements */
+}
+
+/* Add padding or spacing to prevent overlap with page content */
+.menu-container {
+    margin-bottom: 100px;
+    /* Add space below the menu to prevent overlap */
+}
+
+/* Prevent overlap with the "Select Your Investment Plan" text */
+.plan-buttons {
+    margin-top: 120px;
+    /* Push the buttons down to avoid overlap */
 }
 
 /* Menu Items */
@@ -222,49 +235,6 @@ footer {
     margin-bottom: 10px;
     font-weight: bold;
     text-transform: uppercase;
-}
-
-/* Subscription Plans Section */
-.menu-dropdown ul {
-    list-style: none;
-    /* Remove default list styling */
-    padding: 0;
-    margin: 0;
-}
-
-.menu-dropdown ul li {
-    margin-bottom: 10px;
-    /* Space between list items */
-    display: flex;
-    /* Use flexbox to align items horizontally */
-    align-items: center;
-    /* Vertically align the icon and text */
-    gap: 8px;
-    /* Add space between the tick icon and link */
-}
-
-.menu-dropdown ul li i {
-    color: #007bff;
-    /* Default blue color for the tick icon */
-    font-size: 16px;
-    /* Icon size */
-}
-
-.menu-dropdown ul li a {
-    text-decoration: none;
-    /* Remove underline from links */
-    font-size: 14px;
-    /* Font size for links */
-    color: #007bff;
-    /* Default blue color for links */
-    transition: color 0.3s ease;
-}
-
-.menu-dropdown ul li a:hover {
-    color: #0056b3;
-    /* Darker blue color on hover */
-    text-decoration: underline;
-    /* Underline the link on hover */
 }
 
 /* Logout Link */

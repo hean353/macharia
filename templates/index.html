@@ -7,6 +7,8 @@
     <title>Register - Big Winners</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
 </head>
@@ -25,94 +27,159 @@
     {% endif %}
     {% endwith %}
     <form id="registerForm" action="/register" method="POST">
-    <div class="container-fluid register-page">
-        <div class="row">
-            <!-- Left Section -->
-            <div class="col-md-5 left-section text-white text-center d-flex flex-column justify-content-center align-items-center">
-                <h2 class="mb-4">Welcome to Big Winners</h2>
-                <p class="text-center">
-                    Already have an account? <a href="/login" class="btn btn-light mt-3">Login</a>
-                </p>
-            </div>
+        <div class="container-fluid register-page">
+            <div class="row">
 
-            <!-- Right Section -->
-            <div class="col-md-7 right-section d-flex flex-column justify-content-center align-items-center">
-                <div class="form-container">
-                    <h3 class="text-center mb-4">Register</h3>
-                    <form id="registerForm" action="/register" method="POST">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <input type="text" name="fullname" class="form-control" placeholder="Full Name"
-                                    required>
+                <!-- Right Section -->
+                <div class="col-md-7 right-section d-flex flex-column justify-content-center align-items-center">
+                    <div class="form-container">
+                        <h3 class="text-center mb-4">Register</h3>
+                        <form id="registerForm" action="/register" method="POST">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" name="fullname" class="form-control" placeholder="Full Name"
+                                            required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        <input type="email" name="email" class="form-control" placeholder="Your Email"
+                                            required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                        <input type="tel" name="phone" class="form-control" placeholder="Your Phone"
+                                            required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                        <input type="text" name="country" class="form-control" placeholder="Country"
+                                            required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user-circle"></i></span>
+                                        <input type="text" name="username" class="form-control" placeholder="Username"
+                                            required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" name="password" id="password" class="form-control"
+                                            placeholder="Password" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" id="confirmPassword" class="form-control"
+                                            placeholder="Confirm Password" required>
+                                        <button class="btn btn-outline-secondary" type="button"
+                                            id="toggleConfirmPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-question-circle"></i></span>
+                                        <select name="security_question" class="form-select" required>
+                                            <option value="" disabled selected>Please Select Your Security Question
+                                            </option>
+                                            <option value="pet">What is your pet's name?</option>
+                                            <option value="school">What was your first school?</option>
+                                            <option value="city">What is your hometown?</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-pen"></i></span>
+                                        <input type="text" name="security_answer" class="form-control"
+                                            placeholder="Enter Your Answer" required>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="email" name="email" class="form-control" placeholder="Your Email" required>
+                            <div class="mb-3 text-center">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="male" value="male"
+                                        required>
+                                    <label class="form-check-label" for="male">Male</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="female"
+                                        value="female" required>
+                                    <label class="form-check-label" for="female">Female</label>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="tel" name="phone" class="form-control" placeholder="Your Phone" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="text" name="country" class="form-control" placeholder="Country" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="text" name="username" class="form-control" placeholder="Username" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="password" name="password" id="password" class="form-control"
-                                    placeholder="Password" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="password" id="confirmPassword" class="form-control"
-                                    placeholder="Confirm Password" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <select name="security_question" class="form-select" required>
-                                    <option value="" disabled selected>Please Select Your Security Question</option>
-                                    <option value="pet">What is your pet's name?</option>
-                                    <option value="school">What was your first school?</option>
-                                    <option value="city">What is your hometown?</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="text" name="security_answer" class="form-control"
-                                    placeholder="Enter Your Answer" required>
-                            </div>
-                        </div>
-                        <div class="mb-3 text-center">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="gender" id="male" value="male"
-                                    required>
-                                <label class="form-check-label" for="male">Male</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="gender" id="female" value="female"
-                                    required>
-                                <label class="form-check-label" for="female">Female</label>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Register</button>
-                    </form>
+                            <button type="submit" class="btn btn-primary w-100">Register</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</form>
+    </form>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
     <!-- Custom JS -->
     <script>
-        document.getElementById('registerForm').addEventListener('submit', function (event) {
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
+        // Toggle Password Visibility
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordField = document.getElementById('password');
+            const passwordIcon = this.querySelector('i');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                passwordIcon.classList.remove('fa-eye');
+                passwordIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                passwordIcon.classList.remove('fa-eye-slash');
+                passwordIcon.classList.add('fa-eye');
+            }
+        });
 
-                if (password !== confirmPassword) {
-                    event.preventDefault();
-                    alert('Passwords do not match!');
-                }
-            });
+        document.getElementById('toggleConfirmPassword').addEventListener('click', function () {
+            const confirmPasswordField = document.getElementById('confirmPassword');
+            const confirmPasswordIcon = this.querySelector('i');
+            if (confirmPasswordField.type === 'password') {
+                confirmPasswordField.type = 'text';
+                confirmPasswordIcon.classList.remove('fa-eye');
+                confirmPasswordIcon.classList.add('fa-eye-slash');
+            } else {
+                confirmPasswordField.type = 'password';
+                confirmPasswordIcon.classList.remove('fa-eye-slash');
+                confirmPasswordIcon.classList.add('fa-eye');
+            }
+        });
+
+        // Validate Passwords Match
+        document.getElementById('registerForm').addEventListener('submit', function (event) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                event.preventDefault();
+                alert('Passwords do not match!');
+            }
+        });
     </script>
 </body>
 <footer>
     <p>&copy; 2025 Big Winners. All rights reserved.</p>
 </footer>
+
 </html>
