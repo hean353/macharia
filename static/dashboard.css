@@ -627,20 +627,21 @@ body.dark-mode .menu-dropdown {
 /* Investment details */
 #investmentDetails {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     /* Ensures even spacing */
     align-items: center;
-    /* Centers items vertically */
+    /* Aligns content */
     flex-wrap: wrap;
-    /* Allows items to stack on smaller screens */
+    /* Allows stacking on smaller screens */
+    padding: 10px;
 }
 
+/* Ensure both columns share equal width */
 #investmentDetails .col-md-6 {
     flex: 1 1 45%;
-    /* Ensures both take almost equal width */
+    max-width: 45%;
     text-align: center;
 }
-
 /* Responsive tweaks */
 @media (max-width: 768px) {
     .investment-graph-section {
@@ -654,7 +655,13 @@ body.dark-mode .menu-dropdown {
         /* Increase chart height for mobile */
     }
 
-    #investmentDetails .col-md-6 {
-        max-width: 100%;
-    }
-}
+        #investmentDetails {
+            flex-wrap: nowrap;
+            /* Prevent stacking */
+        }
+    
+        #investmentDetails .col-md-6 {
+            flex: 1 1 auto;
+            max-width: 50%;
+        }
+        }
