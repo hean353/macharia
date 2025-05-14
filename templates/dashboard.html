@@ -41,14 +41,11 @@
         <!-- Real-Time Investment Graph Section -->
         <div class="investment-graph-section container mt-4 p-4 bg-light rounded shadow">
             <h3 class="text-center"><i class="fas fa-chart-line"></i> Investment Progress</h3>
-            <div class="row">
-                <div class="col-12">
-                    <!-- Add a responsive wrapper for the canvas -->
-                    <div class="chart-container">
-                        <canvas id="investmentChart"></canvas>
-                    </div>
-                </div>
-                <div id="investmentDetails" class="row mt-4 text-center">
+            <div class="chart-container">
+                <canvas id="investmentChart"></canvas>
+            </div>
+            <div id="investmentDetails" class="text-center mt-3">
+                <div class="row">
                     <div class="col-md-6">
                         <p><strong>Invested Amount:</strong> <span id="investedAmount" class="text-success">$0</span></p>
                     </div>
@@ -56,8 +53,7 @@
                         <p><strong>Accumulated Profit:</strong> <span id="profitAmount" class="text-primary">$0</span></p>
                     </div>
                 </div>
-                </div>
-            </div>
+            </div>  </div>
             
         
         <script>

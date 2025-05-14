@@ -652,44 +652,25 @@ body.dark-mode .menu-dropdown {
     /* Reduce the margin between the detail items */
 }
 
-/* Invested Amount Styling */
-#investedAmount {
-    color: #28a745;
-    /* Green text for invested amount */
-    font-size: 1.2rem;
-}
-
-/* Profit Amount Styling */
-#profitAmount {
-    color: #007bff;
-    /* Blue text for profit */
-    font-size: 1.2rem;
-}
-
-/* Add Bootstrap Utility Classes Overrides */
-.investment-graph-section.container {
-    padding: 2rem;
-    /* Add more padding for better spacing */
-    background-color: #f8f9fa;
-    /* Light gray background for contrast */
-}
+/* Adjust the graph container for alignment */
 .chart-container {
     position: relative;
     width: 100%;
-    /* Take full width of the parent container */
-    height: 70vh;
+    height: auto;
+    /* Let the canvas height adjust automatically */
     margin: 0 auto;
-    /* Center the chart */
+    margin-bottom: 10px;
+    /* Add a small margin to separate graph from details */
 }
 
+/* Styling for the graph canvas */
 .chart-container canvas {
     display: block;
     width: 100% !important;
-    /* Force the canvas to take up the full width */
+    /* Ensure the canvas takes full width */
     height: auto !important;
-    /* Let the height adjust automatically */
+    /* Maintain aspect ratio */
 }
-
 /* Adjust aspect ratio for smaller devices */
 @media (max-width: 768px) {
     .chart-container {
