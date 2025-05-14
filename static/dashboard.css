@@ -629,10 +629,9 @@ body.dark-mode .menu-dropdown {
 .investment-graph-section canvas {
     max-width: 100%;
     /* Ensure responsiveness */
-    height: auto;
+    height: 100vh;
     /* Maintain aspect ratio */
-    min-height: 300px;
-    /* Set a minimum height for the graph */
+   
     margin: 0 auto;
     /* Center the graph */
     display: block;
