@@ -86,26 +86,27 @@
     </div>
     <script>
         function toggleMenu() {
-                const menuDropdown = document.getElementById('menuDropdown');
-                if (menuDropdown) {
-                    menuDropdown.style.display = menuDropdown.style.display === 'block' ? 'none' : 'block';
+    const menuDropdown = document.getElementById('menuDropdown');
+    const container = document.querySelector('.container');
 
-                    // Adjust the layout when the menu is displayed
-                    const container = document.querySelector('.container');
-                    if (menuDropdown.style.display === 'block') {
-                        container.style.marginTop = '120px'; // Add margin when menu is open
-                    } else {
-                        container.style.marginTop = '0'; // Reset margin when menu is closed
-                    }
-                }
-            }
+    if (menuDropdown) {
+        menuDropdown.style.display = menuDropdown.style.display === 'block' ? 'none' : 'block';
 
-        function toggleProfileDetails() {
-            const profileDetails = document.getElementById('profileDetails');
-            if (profileDetails) {
-                profileDetails.style.display = profileDetails.style.display === 'block' ? 'none' : 'block';
-            }
+        // Adjust content margin when menu is open
+        if (menuDropdown.style.display === 'block') {
+            container.style.marginTop = '150px';
+        } else {
+            container.style.marginTop = '0';
         }
+    }
+}
+
+function toggleProfileDetails() {
+    const profileDetails = document.getElementById('profileDetails');
+    if (profileDetails) {
+        profileDetails.style.display = profileDetails.style.display === 'block' ? 'none' : 'block';
+    }
+}
     </script>
 
 
