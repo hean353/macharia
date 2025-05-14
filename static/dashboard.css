@@ -603,78 +603,44 @@ body.dark-mode .menu-dropdown {
     border-width: 0 3px 3px 0;
     transform: rotate(45deg);
 }
-/* General Styling for the Investment Graph Section */
 .investment-graph-section {
-    background-color: #ffffff;
-    /* White background for clean appearance */
-    border-radius: 10px;
-    /* Rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    /* Subtle shadow for depth */
+    max-width: 800px;
+    margin: auto;
     padding: 20px;
-    margin: 20px 0;
-    height: 80vh;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Center Align the Title */
-.investment-graph-section h3 {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #333333;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-/* Styling for the Graph Canvas */
-.investment-graph-section canvas {
-    max-width: 100%;
-    /* Ensure responsiveness */
-    height: 100vh;
-    /* Maintain aspect ratio */
-   
-    margin: 0 auto;
-    /* Center the graph */
-    display: block;
-    /* Block-level element for proper layout */
-}
-
-#investmentDetails {
-    margin-top: 10px;
-    /* Reduce the top margin to bring it closer to the graph */
-    font-size: 1rem;
-}
-
-/* Style for Individual Detail Items */
-#investmentDetails p {
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin: 5px 0;
-    /* Reduce the margin between the detail items */
-}
-
-/* Adjust the graph container for alignment */
+/* Chart container */
 .chart-container {
     position: relative;
     width: 100%;
-    height: auto;
-    /* Let the canvas height adjust automatically */
-    margin: 0 auto;
-    margin-bottom: 10px;
-    /* Add a small margin to separate graph from details */
+    max-width: 600px;
+    margin: auto;
 }
 
-/* Styling for the graph canvas */
-.chart-container canvas {
-    display: block;
-    width: 100% !important;
-    /* Ensure the canvas takes full width */
-    height: auto !important;
-    /* Maintain aspect ratio */
+/* Investment details */
+#investmentDetails .row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
 }
-/* Adjust aspect ratio for smaller devices */
+
+#investmentDetails .col-md-6 {
+    flex: 1 1 50%;
+    max-width: 50%;
+    padding: 10px;
+}
+
+/* Ensure proper spacing */
 @media (max-width: 768px) {
-    .chart-container {
-        padding-bottom: 75%;
-        /* Adjust aspect ratio */
+    .investment-graph-section {
+        padding: 15px;
+    }
+
+    #investmentDetails .col-md-6 {
+        max-width: 100%;
     }
 }
