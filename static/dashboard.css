@@ -676,27 +676,23 @@ body.dark-mode .menu-dropdown {
     position: relative;
     width: 100%;
     /* Take full width of the parent container */
-    height: 0;
-    padding-bottom: 56.25%;
-    /* Maintain a 16:9 aspect ratio */
+    height: 100vh;
     margin: 0 auto;
     /* Center the chart */
 }
 
 .chart-container canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
+    display: block;
     width: 100% !important;
-    /* Use full width of the container */
-    height: 100% !important;
-    /* Use full height of the container */
+    /* Force the canvas to take up the full width */
+    height: auto !important;
+    /* Let the height adjust automatically */
 }
 
-/* Adjustments for smaller devices */
+/* Adjust aspect ratio for smaller devices */
 @media (max-width: 768px) {
     .chart-container {
         padding-bottom: 75%;
-        /* Adjust aspect ratio for smaller screens */
+        /* Adjust aspect ratio */
     }
 }
