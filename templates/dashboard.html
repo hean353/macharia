@@ -48,15 +48,17 @@
                         <canvas id="investmentChart"></canvas>
                     </div>
                 </div>
+                <div id="investmentDetails" class="row mt-4 text-center">
+                    <div class="col-md-6">
+                        <p><strong>Invested Amount:</strong> <span id="investedAmount" class="text-success">$0</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Accumulated Profit:</strong> <span id="profitAmount" class="text-primary">$0</span></p>
+                    </div>
+                </div>
+                </div>
             </div>
-            <div id="investmentDetails" class="row mt-4 text-center">
-                <div class="col-md-6">
-                    <p><strong>Invested Amount:</strong> <span id="investedAmount" class="text-success">$0</span></p>
-                </div>
-                <div class="col-md-6">
-                    <p><strong>Accumulated Profit:</strong> <span id="profitAmount" class="text-primary">$0</span></p>
-                </div>
-            </div>  </div>
+            
         
         <script>
             document.addEventListener('DOMContentLoaded', function () {
