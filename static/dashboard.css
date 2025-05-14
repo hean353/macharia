@@ -638,9 +638,9 @@ body.dark-mode .menu-dropdown {
     /* Block-level element for proper layout */
 }
 
-/* Styling for Investment Details */
 #investmentDetails {
-    margin-top: 20px;
+    margin-top: 10px;
+    /* Reduce the top margin to bring it closer to the graph */
     font-size: 1rem;
 }
 
@@ -648,6 +648,8 @@ body.dark-mode .menu-dropdown {
 #investmentDetails p {
     font-size: 1.1rem;
     font-weight: bold;
+    margin: 5px 0;
+    /* Reduce the margin between the detail items */
 }
 
 /* Invested Amount Styling */
