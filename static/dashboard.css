@@ -610,6 +610,8 @@ body.dark-mode .menu-dropdown {
     background-color: #f8f9fa;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-height: 500px;
+    /* Increase the height */
 }
 
 /* Chart container */
@@ -618,6 +620,8 @@ body.dark-mode .menu-dropdown {
     width: 100%;
     max-width: 600px;
     margin: auto;
+    min-height: 350px;
+    /* Expand height */
 }
 
 /* Investment details */
@@ -634,10 +638,17 @@ body.dark-mode .menu-dropdown {
     padding: 10px;
 }
 
-/* Ensure proper spacing */
+/* Responsive tweaks */
 @media (max-width: 768px) {
     .investment-graph-section {
         padding: 15px;
+        min-height: 600px;
+        /* Even larger height for mobile */
+    }
+
+    .chart-container {
+        min-height: 400px;
+        /* Increase chart height for mobile */
     }
 
     #investmentDetails .col-md-6 {
