@@ -674,7 +674,7 @@ body.dark-mode .menu-dropdown {
 }
 .chart-container {
     position: relative;
-    width: 80%;
+    width: 100%;
     /* Take full width of the parent container */
     height: 50vh;
     margin: 0 auto;
@@ -683,18 +683,16 @@ body.dark-mode .menu-dropdown {
 
 .chart-container canvas {
     display: block;
-    width: 80% !important;
+    width: 100% !important;
     /* Force the canvas to take up the full width */
-    height: 80% !important;
+    height: auto !important;
     /* Let the height adjust automatically */
 }
 
 /* Adjust aspect ratio for smaller devices */
 @media (max-width: 768px) {
     .chart-container {
-        width: 90%;
-        height: 40vh;
-        padding-bottom: 60%;
+        padding-bottom: 75%;
         /* Adjust aspect ratio */
     }
 }
